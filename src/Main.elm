@@ -10,6 +10,7 @@ import Design
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
+import Agents
 import Mission
 import Task
 import Time
@@ -35,6 +36,7 @@ main =
 type View
     = Console
     | MissionControl
+    | AgentsView
     | DesignDoc
 
 
@@ -62,6 +64,7 @@ type alias Model =
     , call : Call
     , zone : Time.Zone
     , mission : Mission.Model
+    , agents : Agents.Model
     }
 
 
@@ -82,11 +85,17 @@ init flags =
             else if flags.hash == "#mission" || flags.saved == "mission" then
                 MissionControl
 
+            else if flags.hash == "#agents" || flags.saved == "agents" then
+                AgentsView
+
             else
                 Console
 
         ( mission, missionCmd ) =
             Mission.init flags.api
+
+        ( agents, agentsCmd ) =
+            Agents.init flags.api
     in
     ( { view = startView
       , tab = Conversation
@@ -98,8 +107,9 @@ init flags =
       , call = NoCall
       , zone = Time.utc
       , mission = mission
+      , agents = agents
       }
-    , Cmd.batch [ Task.perform GotZone Time.here, scrollToEnd "feed", Cmd.map MissionMsg missionCmd ]
+    , Cmd.batch [ Task.perform GotZone Time.here, scrollToEnd "feed", Cmd.map MissionMsg missionCmd, Cmd.map AgentsMsg agentsCmd ]
     )
 
 
@@ -122,6 +132,7 @@ type Msg
     | CallTick
     | EndCall
     | MissionMsg Mission.Msg
+    | AgentsMsg Agents.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -240,6 +251,13 @@ update msg model =
             in
             ( { model | mission = mission }, Cmd.map MissionMsg cmd )
 
+        AgentsMsg m ->
+            let
+                ( agents, cmd ) =
+                    Agents.update m model.agents
+            in
+            ( { model | agents = agents }, Cmd.map AgentsMsg cmd )
+
 
 endCall : Model -> ( Model, Cmd Msg )
 endCall model =
@@ -322,6 +340,9 @@ viewKey v =
         MissionControl ->
             "mission"
 
+        AgentsView ->
+            "agents"
+
         DesignDoc ->
             "design"
 
@@ -340,6 +361,11 @@ subscriptions model =
             _ ->
                 Sub.none
         , Sub.map MissionMsg (Mission.subscriptions model.mission)
+        , if model.view == AgentsView then
+            Sub.map AgentsMsg (Agents.subscriptions model.agents)
+
+          else
+            Sub.none
         ]
 
 
@@ -357,11 +383,13 @@ view model =
         , div [ class "views", attribute "role" "tablist", attribute "aria-label" "Views" ]
             [ tabButton "Merchant console" (model.view == Console) (SelectView Console)
             , tabButton "Mission control" (model.view == MissionControl) (SelectView MissionControl)
+            , tabButton "Agents & integrations" (model.view == AgentsView) (SelectView AgentsView)
             , tabButton "System design" (model.view == DesignDoc) (SelectView DesignDoc)
             , span [ class "sample" ] [ text "Prototype · all store and customer data is sample data" ]
             ]
         , viewConsole model
         , main_ [ id "view-mission", hidden (model.view /= MissionControl) ] [ Html.map MissionMsg (Mission.view model.mission) ]
+        , main_ [ id "view-agents", hidden (model.view /= AgentsView) ] [ Html.map AgentsMsg (Agents.view model.agents) ]
 
         -- The design doc stays laid out when off screen so its diagrams size correctly.
         , main_ [ id "view-design", classList [ ( "offstage", model.view /= DesignDoc ) ] ] [ Design.view ]

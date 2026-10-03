@@ -14,7 +14,7 @@ view =
         [ nav [ class "toc", attribute "aria-label" "Design sections" ]
             (List.map (\( anchor, label ) -> a [ href ("#" ++ anchor) ] [ text label ]) toc)
         , div [ class "docbody" ]
-            [ idea, architecture, sponsors, agents, protocol, flow, voice, frontEnd, mission, dataModel, demo, risks ]
+            [ idea, architecture, sponsors, integrations, agents, protocol, flow, voice, frontEnd, mission, dataModel, demo, risks ]
         ]
 
 
@@ -23,6 +23,7 @@ toc =
     [ ( "d-idea", "The idea" )
     , ( "d-arch", "Architecture" )
     , ( "d-sponsors", "Sponsor roles" )
+    , ( "d-live", "Sponsors, as built" )
     , ( "d-agents", "Merchant agents" )
     , ( "d-room", "Room protocol" )
     , ( "d-flow", "A session, step by step" )
@@ -155,6 +156,64 @@ architectureChart =
   RS -- "approval request" --> DB
   DB -- "SSE per merchant" --> UI
   DB -- "SSE fan-in" --> MC"""
+
+
+integrations : Html msg
+integrations =
+    docSection "d-live"
+        "Sponsors, as built"
+        "How Band, ZooWork and Tavily run in the shop today"
+        [ p [ class "lede" ] [ text "Each sponsor is wired into the running app, not just the design. The Agents & integrations tab shows their live status, every Band room, and the ads the promo agent made." ]
+        , div [ class "sponsors" ]
+            [ card "Agent-to-agent rooms"
+                "Band"
+                [ p [] [ text "Every Tabard room is a real Band chat room. Seven Band agents take part: concierge, stylist, promo, service, returns, gatekeeper, and a shopper agent that speaks for Muse and Dots buyers." ]
+                , ul []
+                    [ li [] [ text "Each message is posted as the agent who said it, with @mentions for whoever should act." ]
+                    , li [] [ text "The concierge hands work to @stylist and @promo through Band: the specialist pulls the request from its own Band inbox (", mono "GET /messages/next", text "), answers in the room and marks it processed." ]
+                    , li [] [ text "The owner opens team rooms and @mentions agents to discuss a plan." ]
+                    ]
+                ]
+            , card "Managed agents"
+                "ZooWork"
+                [ p [] [ text "The promo engine and the concierge are ZooWork managed agents on Claude Opus 5.5, one per store and role, created on first use with the role in their persona." ]
+                , ul []
+                    [ li [] [ text "Promo agent picks the product, discount and copy; store rules still set price, margin and when the owner must approve." ]
+                    , li [] [ text "The same agent paints a 2400×840 billboard with ZooWork's designer skill; the owner chooses whether the room's board shows it." ]
+                    , li [] [ text "A shared importer agent turns scraped storefront text into a shop." ]
+                    ]
+                ]
+            , card "Web research"
+                "Tavily"
+                [ p [] [ text "Brings the outside web into the store." ]
+                , ul []
+                    [ li [] [ text "Open a shop from a TikTok Shop, Amazon or any store link: Tavily Extract reads the page, Tavily Search fills in what the page hides." ]
+                    , li [] [ text "Every promo offer is priced against the web: the competitor price is the median of prices Tavily finds for that product." ]
+                    ]
+                ]
+            ]
+        , h3 [] [ text "One shopping session, end to end" ]
+        , diagram liveFlowChart
+        ]
+
+
+liveFlowChart : String
+liveFlowChart =
+    """sequenceDiagram
+  participant B as Shopper agent (Band)
+  participant C as @concierge (Band)
+  participant S as @stylist (Band)
+  participant P as @promo (Band + ZooWork)
+  participant T as Tavily
+  B->>C: "Do you have linen trousers in stock?"
+  C->>S: @stylist suggest something in stock
+  Note over S: pulls the request from its Band inbox
+  S->>C: "Try the linen wide-leg trouser, 23 in stock"
+  C->>P: @promo best price for this buyer?
+  P->>T: competitor prices (when drafting offers)
+  P->>B: "$131 for you (returning-customer rate)"
+  B->>C: "Accepted. Checking out."
+"""
 
 
 sponsors : Html msg
