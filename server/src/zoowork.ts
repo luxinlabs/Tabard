@@ -11,7 +11,7 @@
 // ZooWork chooses and writes; the rules check.
 import { createZooworkClient, isRunFinished, runOutcome, assistantText, type ZooworkClient } from "@zoowork-ai/sdk";
 import { FLAGS, riskOf, type AgentKey } from "./catalog.ts";
-import { run, type Row } from "./db.ts";
+import { get, run, type Row } from "./db.ts";
 
 const KEY = process.env.ZOOWORK_API_KEY;
 const MODEL = process.env.ZOOWORK_MODEL || "litellm/claude-opus-5-5";
@@ -105,6 +105,27 @@ async function converseIn(agentId: string, prompt: string, timeoutMs: number): P
     await sleep(1500);
   }
   throw new Error("timed out waiting for the agent");
+}
+
+// ---------------------------------------------------------------- shared (not per-shop) agents, e.g. the store importer
+const utilityIds = new Map<string, Promise<string>>();
+export async function askUtilityAgent(name: string, soulText: string, prompt: string, timeoutMs = 180_000): Promise<string> {
+  const settingKey = `zoowork_agent_${name}`;
+  if (!utilityIds.has(name)) utilityIds.set(name, (async () => {
+    const saved = get("SELECT value FROM app_settings WHERE key = ?", settingKey)?.value as string | undefined;
+    if (saved) return saved;
+    const a = await zc().createAgent({ resource: {
+      name: `tabard-${name}`, model: { primary: MODEL },
+      persona: { docs: [{ name: "SOUL.md", content: soulText }] },
+      include_global_skills: false, labels: { app: "tabard", role: name },
+    } }, `tabard-${name}-v1`);
+    run("INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)", settingKey, a.agent_id);
+    console.log(`[zoowork] created ${name} agent ${a.agent_id}`);
+    return a.agent_id;
+  })().catch(e => { utilityIds.delete(name); throw e; }));
+  const id = await utilityIds.get(name)!;
+  if (!started.has(id)) { await zc().startAgent(id); await zc().waitUntilRunning(id); started.add(id); }
+  return converse(id, prompt, timeoutMs);
 }
 
 // ---------------------------------------------------------------- billboard artwork (ZooWork "designer" skill)

@@ -7,6 +7,7 @@ import { all, get, insert, iso, parse, run, type Row } from "./db.ts";
 import { BOT_ASKS, CALL_SCRIPTS, TICKET_SCRIPTS, type AgentKey } from "./catalog.ts";
 import { publish, subscriberCount, onSubscribersChange } from "./bus.ts";
 import { designAd, runAgent, zooworkRoleLive, type AgentResult } from "./zoowork.ts";
+import { competitorPrice } from "./importer.ts";
 import fs from "node:fs";
 import path from "node:path";
 import { DATA_DIR } from "./db.ts";
@@ -73,12 +74,20 @@ export class Engine {
     }
   }
 
+  // What the billboard in the room shows, given the live offer and the owner's display choice.
+  billboard() {
+    const m = this.merchant(), p = this.livePromo();
+    const mode = m.billboard_mode || "artwork";
+    if (!p || mode === "off") return { headline: m.house_offer, body: p ? "Today's offer is sent to buyer agents directly." : "Click to write a new offer with the promo engine", image: null, mode };
+    return { headline: p.headline, body: p.body, image: mode === "artwork" ? promoImageUrl(this.mid, p) : null, promoId: p.id, mode };
+  }
+  refreshBillboard() { this.floor("billboard", this.billboard()); }
+
   snapshot() {
-    const p = this.livePromo(), m = this.merchant();
     const ringing = get("SELECT id FROM calls WHERE merchant_id = ? AND status = 'ringing'", this.mid);
     return {
       type: "snapshot", live: this.live, visitors: [...this.visitors.values()], busy: [...this.busy], ringing: !!ringing,
-      billboard: p ? billboardOf(this.mid, p) : { headline: m.house_offer, body: "Click to write a new offer with the promo engine", image: null },
+      billboard: this.billboard(),
     };
   }
 
@@ -514,6 +523,11 @@ export class Engine {
     const r = await this.ask("promo", prompt);
     if (!r.data) throw new HttpError(400, r.text);
     const d = r.data;
+    // real competitor price from the web (Tavily); without it, the figure is an estimate and labelled as one
+    r.cites = r.cites.filter(c => !c.startsWith("tavily"));
+    const comp = await competitorPrice(d.product, d.list, this.merchant().website).catch(e => { console.warn("[tavily] competitor price:", (e as Error).message); return null; });
+    if (comp) { d.competitor = comp.price; r.cites.push(`tavily · ${comp.count} prices from ${comp.sources.join(", ")} · ${(comp.ms / 1000).toFixed(1)} s`); }
+    else r.cites.push("competitor price: estimate (no Tavily result)");
     const id = insert(`INSERT INTO promos (merchant_id, prompt, headline, body, sku, product, pct, price, list, margin, competitor, segment, ends, lift, needs_approval, agent_text, cites, source, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       this.mid, prompt, d.headline, d.body, d.sku, d.product, d.pct, d.price, d.list, d.margin, d.competitor, d.segment, d.ends, d.lift, d.needsApproval ? 1 : 0, r.text, JSON.stringify(r.cites), r.source, iso());
@@ -542,7 +556,7 @@ export class Engine {
       run("UPDATE promos SET image_status = 'ready', image_path = ?, image_note = ? WHERE id = ?", file, `took ${(art.ms / 1000).toFixed(0)} s`, pid);
       this.event("@promo", `finished the billboard artwork for "${promo.headline}"`, "promo");
       const now = get("SELECT * FROM promos WHERE id = ?", pid)!;
-      if (now.status === "live") this.floor("billboard", billboardOf(this.mid, now));
+      if (now.status === "live") this.refreshBillboard();
       this.toast(`@promo finished the ad artwork for "${promo.headline}".`, "billboard");
     } catch (e) {
       console.warn(`[zoowork] ad artwork failed: ${(e as Error).message}`);
@@ -555,7 +569,7 @@ export class Engine {
     if (!p) throw new HttpError(404, "promo not found");
     run("UPDATE promos SET status = 'retired' WHERE merchant_id = ? AND status = 'live'", this.mid);
     run("UPDATE promos SET status = 'live', published_at = ?, seen = 0 WHERE id = ?", iso(), pid);
-    this.floor("billboard", billboardOf(this.mid, get("SELECT * FROM promos WHERE id = ?", pid)!));
+    this.refreshBillboard();
     this.say("agent:promo", "New offer is live! Telling buyer agents.", "good");
     this.decision("@promo", `Published "${p.headline}"`, p.needs_approval ? `${p.pct}% approved by owner` : "Inside margin rule");
     this.event("@promo", `new billboard: ${p.headline}`, "promo");
@@ -571,7 +585,6 @@ export class Engine {
 }
 
 export const promoImageUrl = (mid: number, p: Row) => p.image_status === "ready" && p.image_path ? `/api/merchants/${mid}/promos/${p.id}/image?v=${encodeURIComponent(p.image_path)}` : null;
-const billboardOf = (mid: number, p: Row) => ({ headline: p.headline, body: p.body, image: promoImageUrl(mid, p), promoId: p.id });
 
 // ---------------------------------------------------------------- registry
 const engines = new Map<number, Engine>();

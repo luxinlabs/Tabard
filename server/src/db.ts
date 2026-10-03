@@ -205,6 +205,9 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TEXT NOT NULL
 );
 
+-- App-wide settings, e.g. ids of shared ZooWork agents.
+CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+
 CREATE INDEX IF NOT EXISTS ix_tx_m ON transactions (merchant_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_ev_m ON events (merchant_id, id);
 CREATE INDEX IF NOT EXISTS ix_msg_room ON messages (room_id, id);
@@ -222,6 +225,7 @@ addColumn("merchants", "source_platform", "TEXT");    // tiktok | amazon | shopi
 addColumn("merchants", "theme", "TEXT");              // room palette (JSON), designed from the storefront
 addColumn("merchants", "import_notes", "TEXT");       // how the import was gathered (JSON: sources, method)
 addColumn("products", "image_url", "TEXT");
+addColumn("merchants", "billboard_mode", "TEXT NOT NULL DEFAULT 'artwork'"); // artwork | text | off
 addColumn("promos", "image_status", "TEXT");          // null | designing | ready | failed
 addColumn("promos", "image_path", "TEXT");            // file under data/ads/ (artwork from the ZooWork designer skill)
 addColumn("promos", "image_note", "TEXT");            // why the artwork failed, or the agent's note

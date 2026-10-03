@@ -20,7 +20,7 @@ export type Merchant = {
   id: number; slug: string; name: string; category: string; tagline: string | null;
   owner_name: string | null; owner_email: string | null; phone: string | null; website: string | null; city: string | null;
   currency: string; timezone: string; plan: string;
-  discount_cap: number; refund_review_over: number; risk_threshold: number; house_offer: string; simulate: number;
+  discount_cap: number; refund_review_over: number; risk_threshold: number; house_offer: string; simulate: number; billboard_mode: "artwork" | "text" | "off";
   created_at: string;
   description: string | null; source_url: string | null; source_platform: string | null; theme: string | null; import_notes: string | null;
   product_count?: number; customer_count?: number; waiting?: number; last_activity?: string | null;
@@ -47,7 +47,7 @@ export type Customer = { id: number; name: string; tier: string; ltv: number; re
 export type AgentReply = { text: string; data: unknown; cites: string[]; source: "zoowork" | "sim"; ms: number };
 
 export type Spot = { to: "door" | "gate" | "shelf" | "queue"; index?: number };
-export type Billboard = { headline: string; body: string; image?: string | null; promoId?: number };
+export type Billboard = { headline: string; body: string; image?: string | null; promoId?: number; mode?: string };
 export type FloorVisitor = { id: string; handle: string; platform: string; kind: "shop" | "service" | "bot"; label: string; spot: Spot };
 export type StreamMsg =
   | { type: "snapshot"; live: boolean; visitors: FloorVisitor[]; busy: string[]; ringing: boolean; billboard: Billboard }
@@ -75,7 +75,7 @@ export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: () => a
 
 export type Theme = { wall: string; floorA: string; floorB: string; accent: string; trim: string; vibe?: string };
 export type ImportPreview = {
-  url: string; platform: "tiktok" | "amazon" | "shopify" | "etsy" | "web"; method: "claude" | "rules";
+  url: string; platform: "tiktok" | "amazon" | "shopify" | "etsy" | "web"; method: "claude" | "zoowork" | "rules";
   merchant: { name: string; category: string; tagline: string; description: string; city: string | null; website: string; house_offer: string };
   products: { name: string; price: number; category: string; image_url: string | null; product_url: string | null }[];
   theme: Theme; sources: { url: string; title: string }[]; warnings: string[];

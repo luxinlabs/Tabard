@@ -7,6 +7,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { HttpError } from "./merchants.ts";
+import { askUtilityAgent, zooworkLive } from "./zoowork.ts";
 
 const TAVILY = process.env.TAVILY_BASE_URL || "https://api.tavily.com"; // override only for local testing
 export const tavilyConfigured = () => !!process.env.TAVILY_API_KEY;
@@ -16,7 +17,7 @@ export type Platform = "tiktok" | "amazon" | "shopify" | "etsy" | "web";
 export type Theme = { wall: string; floorA: string; floorB: string; accent: string; trim: string; vibe: string };
 export type ImportedProduct = { name: string; price: number; category: string; image_url: string | null; product_url: string | null };
 export type ImportPreview = {
-  url: string; platform: Platform; method: "claude" | "rules";
+  url: string; platform: Platform; method: "claude" | "zoowork" | "rules";
   merchant: { name: string; category: string; tagline: string; description: string; city: string | null; website: string; house_offer: string };
   products: ImportedProduct[];
   theme: Theme;
@@ -67,7 +68,7 @@ async function gather(url: URL, platform: Platform): Promise<Gathered> {
   if (ex.failed_results.length) warnings.push(`Tavily couldn't read the page directly (${ex.failed_results[0].error}). Used web search instead.`);
 
   // Search: when the page is blocked or thin (common on Amazon and TikTok), ask the web about the store
-  if (text.trim().length < 1500) {
+  if (text.trim().length < 1500 || platform === "tiktok" || platform === "amazon" || !/\$\s?\d/.test(text)) {
     const handle = url.pathname.split("/").filter(Boolean).find(p => p.startsWith("@"))?.slice(1) ?? url.pathname.split("/").filter(Boolean).pop() ?? "";
     const q = `${handle || url.hostname} ${PLATFORM_NAME[platform]} store products prices`.trim();
     type SearchRes = { answer?: string; images?: (string | { url: string })[]; results: { title: string; url: string; content: string; raw_content?: string }[] };
@@ -132,7 +133,29 @@ async function structureWithClaude(g: Gathered, url: URL, platform: Platform): P
   };
 }
 
-// ---------------------------------------------------------------- 2b. structure with rules (no Claude key)
+// ---------------------------------------------------------------- 2b. structure with a ZooWork agent (no Anthropic key needed)
+const IMPORTER_SOUL = "You turn scraped storefront text into a shop profile for a retail simulation. Use only facts from the source text for names, products and prices; when a price is missing, estimate a realistic one in USD. Choose a room palette that fits the brand. Reply with one JSON object only.";
+
+async function structureWithZooWork(g: Gathered, url: URL, platform: Platform): Promise<Structured> {
+  const reply = await askUtilityAgent("importer", IMPORTER_SOUL,
+    `Storefront: ${url.href} (${PLATFORM_NAME[platform]})\n\n` + (g.answer ? `Search summary:\n${g.answer}\n\n` : "") +
+    `Image URLs found on the page (use only these for image_url):\n${g.images.join("\n") || "(none)"}\n\nSource text:\n${g.text.slice(0, 60_000)}\n\n` +
+    `Reply with one JSON object: {"name": brand name, "category": what the store sells in 2-4 words, "tagline": one line in the store's voice, ` +
+    `"description": two sentences, "city": city or null, "house_offer": a standing offer for returning customers, ` +
+    `"products": up to 12 real products [{"name", "price": number in USD, "category", "image_url": one of the listed URLs or null, "product_url": URL or null}], ` +
+    `"theme": {"wall", "floorA", "floorB", "accent", "trim": hex colours like #2F4A3C (wall dark enough for cream text, floors light), "vibe": 3-6 words}}`);
+  const m = reply.match(/\{[\s\S]*\}/);
+  const parsed = ShopSchema.safeParse(m ? JSON.parse(m[0]) : null);
+  if (!parsed.success) throw new Error("the importer agent's reply didn't match the shop schema");
+  const p = parsed.data, allowed = new Set(g.images);
+  return {
+    merchant: { name: p.name, category: p.category, tagline: p.tagline, description: p.description, city: p.city, website: url.hostname, house_offer: p.house_offer },
+    products: p.products.slice(0, 12).map(x => ({ ...x, price: Math.max(1, Math.round(x.price)), image_url: x.image_url && allowed.has(x.image_url) ? x.image_url : null })),
+    theme: p.theme,
+  };
+}
+
+// ---------------------------------------------------------------- 2c. structure with rules (no model available)
 const PALETTES: [RegExp, Theme][] = [
   [/beauty|skin|cosmetic|makeup|fragrance|lip|serum/i, { wall: "#7E4A5A", floorA: "#F6E8EA", floorB: "#FBF2F3", accent: "#D98FA0", trim: "#B98A84", vibe: "soft blush boutique" }],
   [/electronic|tech|gadget|phone|laptop|headphone|charger|audio/i, { wall: "#1F2A44", floorA: "#E3E7EF", floorB: "#F1F3F8", accent: "#3B82C4", trim: "#6B7A90", vibe: "cool modern tech store" }],
@@ -198,6 +221,27 @@ function platformTouch(t: Theme, platform: Platform): Theme {
   return t;
 }
 
+// ---------------------------------------------------------------- competitor price for the promo engine
+// Search the web for what the same kind of product sells for elsewhere; median of the prices found near ours.
+export async function competitorPrice(product: string, listPrice: number, ownSite?: string | null): Promise<{ price: number; count: number; ms: number; sources: string[] } | null> {
+  if (!tavilyConfigured()) return null;
+  const t0 = Date.now();
+  type SearchRes = { results: { url: string; content: string }[] };
+  const s = await tavily<SearchRes>("/search", { query: `${product} price`, search_depth: "basic", max_results: 8 });
+  const own = ownSite?.replace(/^www\./, "");
+  const prices: number[] = [], sources = new Set<string>();
+  for (const r of s.results) {
+    if (own && r.url.includes(own)) continue;
+    for (const m of r.content.matchAll(/\$\s?(\d{1,4}(?:[.,]\d{2})?)/g)) {
+      const v = parseFloat(m[1].replace(",", "."));
+      if (v >= listPrice * 0.35 && v <= listPrice * 2.5) { prices.push(v); sources.add(new URL(r.url).hostname.replace(/^www\./, "")); }
+    }
+  }
+  if (prices.length < 2) return null;
+  prices.sort((a, b) => a - b);
+  return { price: Math.round(prices[Math.floor(prices.length / 2)]), count: prices.length, ms: Date.now() - t0, sources: [...sources].slice(0, 4) };
+}
+
 // ---------------------------------------------------------------- entry point
 export async function previewImport(raw: string): Promise<ImportPreview> {
   const { url, platform } = detectPlatform(raw);
@@ -212,9 +256,17 @@ export async function previewImport(raw: string): Promise<ImportPreview> {
       g.warnings.push("Claude couldn't structure the store, so simpler rule-based parsing was used.");
       s = structureWithRules(g, url, platform);
     }
+  } else if (zooworkLive()) {
+    try { s = await structureWithZooWork(g, url, platform); method = "zoowork"; }
+    catch (e) {
+      if (e instanceof HttpError) throw e;
+      console.warn("[import] ZooWork structuring failed, using rules:", (e as Error).message);
+      g.warnings.push("The ZooWork importer couldn't structure the store, so simpler rule-based parsing was used.");
+      s = structureWithRules(g, url, platform);
+    }
   } else {
     s = structureWithRules(g, url, platform);
-    g.warnings.push("Parsed with simple rules. Set ANTHROPIC_API_KEY on the server for a more accurate catalog and theme.");
+    g.warnings.push("Parsed with simple rules. Set ZOOWORK_API_KEY or ANTHROPIC_API_KEY on the server for a more accurate catalog and theme.");
   }
   if (!s.products.length) g.warnings.push("No products with prices were found. The shop will start with an empty catalog; you can still open it.");
   return { url: url.href, platform, method, merchant: s.merchant, products: s.products, theme: platformTouch(s.theme, platform), sources: g.sources, warnings: g.warnings };

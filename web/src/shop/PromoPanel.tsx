@@ -19,6 +19,8 @@ export function PromoPanel({ m, onPublished }: { m: Merchant; onPublished: (p: P
   const products = useM<Product[]>(m.id, ["products"], "/products");
   const health = useHealth();
   const artwork = useAction<number>(m.id, id => ({ path: `/promos/${id}/artwork` }));
+  const display = useAction<Merchant["billboard_mode"]>(m.id, mode => ({ path: "", method: "PATCH", body: { billboard_mode: mode } }));
+  const mode = display.isPending && display.variables ? display.variables : m.billboard_mode ?? "artwork";
   const [prompt, setPrompt] = useState(PRESETS.default[0]);
   const [draftId, setDraftId] = useState<number | null>(null);
   const [draftLocal, setDraft] = useState<Promo | null>(null);
@@ -41,7 +43,14 @@ export function PromoPanel({ m, onPublished }: { m: Merchant; onPublished: (p: P
           <button className="btn primary" onClick={run} disabled={generate.isPending}>{generate.isPending ? "Drafting…" : "Generate offer"}</button>
           <p className="note" style={{ marginTop: 12 }}>The agent drafts copy, picks the price, checks margin and a competitor price. Discounts over {m.discount_cap}% need your approval before buyer agents see them.</p>
         </div>
-        <div className="panel-h" style={{ borderTop: "1px solid var(--line)" }}><span className="label">On the billboard now</span></div>
+        <div className="panel-h" style={{ borderTop: "1px solid var(--line)" }}><span className="label">On the billboard now</span>
+          <span className="seg" role="group" aria-label="What the billboard in the room shows">
+            {([["artwork", "Ad artwork"], ["text", "Text only"], ["off", "Don't show"]] as const).map(([k, label]) =>
+              <button key={k} type="button" aria-pressed={mode === k} onClick={() => display.mutate(k)}>{label}</button>)}
+          </span>
+        </div>
+        {mode === "off" && <div className="pad note" style={{ paddingBottom: 0 }}>The board in the room shows your house offer. Buyer agents still get the live offer when they ask.</div>}
+        {mode === "artwork" && live && live.image_status !== "ready" && <div className="pad note" style={{ paddingBottom: 0 }}>{live.image_status === "designing" ? "The artwork is still being painted; the board shows the text until it's ready." : "This offer has no artwork, so the board shows its text."}</div>}
         <div className="pad">
           {live
             ? <div className="liveoffer">{live.image_url && <img src={live.image_url} alt="" />}<div><b>{live.headline}</b><div className="note">{live.body}</div><div className="note" style={{ marginTop: 6 }}>Buyer agents that received it: <b className="num">{live.seen}</b> · <Link to={`/m/${m.id}/ads/${live.id}`}>Open ad page</Link></div></div></div>
@@ -56,7 +65,7 @@ export function PromoPanel({ m, onPublished }: { m: Merchant; onPublished: (p: P
       <div className="panel">
         <div className="panel-h"><span className="label">Draft</span>{draft && <Source source={draft.source} />}</div>
         <div className="pad">
-          <ErrorNote error={generate.error || publish.error || artwork.error} />
+          <ErrorNote error={generate.error || publish.error || artwork.error || display.error} />
           {generate.isPending ? <Thinking>@promo is drafting an offer…</Thinking>
             : !draft ? <div className="thinking" style={{ flexDirection: "column" }}><b style={{ fontFamily: "var(--display)", fontSize: 20, color: "var(--forest)" }}>Write a prompt, get a billboard.</b><span>The draft appears here.</span></div>
             : <>

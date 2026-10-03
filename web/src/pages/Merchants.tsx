@@ -81,7 +81,7 @@ function ImportFromLink({ onDone, onCreated }: { onDone: () => void; onCreated?:
         <button className="btn primary" disabled={preview.isPending || !url.trim()}>{preview.isPending ? "Reading the store…" : "Read the store"}</button>
       </form>
       <p className="note" style={{ margin: 0 }}>
-        Tavily reads the page (and searches the web if the page blocks it). Tabard then builds the profile, catalog and a room that matches the brand. You can review everything before the shop is created.
+        Tavily reads the page and, for TikTok, Amazon or pages without prices, also searches the web. A ZooWork agent then builds the profile, catalog and a room that matches the brand. You can review everything before the shop is created.
         {health.data && !health.data.tavily && <b style={{ color: "var(--warn)" }}> TAVILY_API_KEY isn't set on the server yet, so importing won't work until it is.</b>}
       </p>
       {preview.isPending && <Thinking>Tavily is reading the store. This can take up to a minute…</Thinking>}
@@ -96,7 +96,7 @@ function ImportFromLink({ onDone, onCreated }: { onDone: () => void; onCreated?:
           </div>
           <div className="import-meta">
             <span className="pill p-forest">{PLATFORM_LABEL[draft.platform]}</span>
-            <span className="pill p-neutral">{draft.method === "claude" ? "Structured by Claude" : "Parsed with rules"}</span>
+            <span className="pill p-neutral">{draft.method === "claude" ? "Structured by Claude" : draft.method === "zoowork" ? "Structured by ZooWork agent" : "Parsed with rules"}</span>
             <span className="pill p-rose">Room: {draft.theme.vibe}</span>
             <span className="swatches">{(["wall", "accent", "trim", "floorA"] as const).map(k => <i key={k} style={{ background: draft.theme[k] }} title={k} />)}</span>
           </div>

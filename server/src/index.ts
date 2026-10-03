@@ -75,6 +75,7 @@ api.patch("/merchants/:mid", (req, res) => {
   if (cols.length) run(`UPDATE merchants SET ${cols.map(c => `${c} = ?`).join(", ")} WHERE id = ?`, ...cols.map(c => data[c]), id);
   const e = engine(id);
   if ("simulate" in data) data.simulate ? e.start() : e.stop();
+  if ("billboard_mode" in data || "house_offer" in data) e.refreshBillboard();
   e.event("you", `updated the store profile (${cols.join(", ") || "no changes"})`, "staff");
   res.json(get("SELECT * FROM merchants WHERE id = ?", id));
 });

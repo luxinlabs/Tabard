@@ -4,7 +4,7 @@ import { AGENT_DEFAULTS, SAMPLE_STORES, riskOf, type StoreKind } from "./catalog
 
 export const MERCHANT_FIELDS = [
   "name", "category", "tagline", "owner_name", "owner_email", "phone", "website", "city", "currency", "timezone", "plan",
-  "discount_cap", "refund_review_over", "risk_threshold", "house_offer", "simulate",
+  "discount_cap", "refund_review_over", "risk_threshold", "house_offer", "simulate", "billboard_mode",
 ] as const;
 const NUMERIC = new Set(["discount_cap", "refund_review_over", "risk_threshold", "simulate"]);
 
@@ -19,6 +19,9 @@ export function cleanMerchant(input: Record<string, unknown>) {
       const n = typeof v === "boolean" ? Number(v) : Number(v);
       if (!Number.isFinite(n) || n < 0) throw new HttpError(400, `${k} must be a non-negative number`);
       out[k] = Math.round(n);
+    } else if (k === "billboard_mode") {
+      if (!["artwork", "text", "off"].includes(String(v))) throw new HttpError(400, "billboard_mode must be artwork, text or off");
+      out[k] = String(v);
     } else out[k] = v == null || v === "" ? null : String(v).slice(0, 300);
   }
   return out;
@@ -155,7 +158,7 @@ export function createFromImport(p: any): Row {
     run("UPDATE merchants SET description = ?, source_url = ?, source_platform = ?, theme = ?, import_notes = ? WHERE id = ?",
       String(m.description ?? "").slice(0, 1000), httpsOrNull(p.url) ?? String(p.url ?? "").slice(0, 500), platform,
       JSON.stringify({ ...theme, vibe: String(t.vibe ?? "").slice(0, 80) }),
-      JSON.stringify({ method: p.method === "claude" ? "claude" : "rules", sources: (p.sources ?? []).slice(0, 10), imported_at: iso() }), id);
+      JSON.stringify({ method: ["claude", "zoowork"].includes(p.method) ? p.method : "rules", sources: (p.sources ?? []).slice(0, 10), imported_at: iso() }), id);
 
     const prefix = String(m.name).replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase() || "SH";
     const swatches = [theme.accent, theme.trim, theme.wall, "#C9C2B2", "#DCCDB0", "#8E4B4B", "#6B7046"];

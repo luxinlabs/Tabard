@@ -33,11 +33,11 @@ Production: `cd web && npm run build`, then `cd server && npm start`. The API se
 
 On the landing page, choose **Or open a new shop → From a store link** and paste a TikTok Shop, Amazon, Shopify, Etsy or any store URL.
 
-1. **Tavily Extract** reads the page. If the page blocks it or returns too little (common on Amazon and TikTok), **Tavily Search** gathers what the web says about the store.
-2. **Claude** (`claude-opus-5-5`, structured output) turns that text into a profile, up to 12 products with prices and images, and a room palette that fits the brand. Without `ANTHROPIC_API_KEY`, a rule-based parser does a simpler version.
+1. **Tavily Extract** reads the page. For TikTok and Amazon, pages without prices, or pages that block it, **Tavily Search** also gathers what the web says about the store.
+2. A model turns that text into a profile, up to 12 products with prices and images, and a room palette that fits the brand: Claude directly if `ANTHROPIC_API_KEY` is set, otherwise a shared ZooWork agent (`tabard-importer`, Claude Opus 5.5) when `ZOOWORK_API_KEY` is set, otherwise a simple rule-based parser.
 3. You review and edit the preview, then create the shop. The room is drawn in the shop's colours, with product photos on the shelves and a sign for the platform.
 
-Set `TAVILY_API_KEY` (required for importing) and optionally `ANTHROPIC_API_KEY` before starting the server. Customers in an imported shop are sample shoppers, because storefronts don't expose real ones.
+Set `TAVILY_API_KEY` in `server/.env` (required for importing). Tavily is also used by the promo engine: each drafted offer's competitor price is the median of prices Tavily finds for that product on other sites (shown as a `tavily · …` chip). Without Tavily that figure is an estimate and labelled as one. Customers in an imported shop are sample shoppers, because storefronts don't expose real ones.
 
 ### ZooWork agents
 
@@ -50,6 +50,8 @@ Tabard's merchant agents run on ZooWork managed agents through the official SDK 
 The first time a shop uses a role (for example the billboard's promo engine), the server creates a ZooWork agent named `tabard-<shop>-<role>`. The role's instructions go into the agent's persona (`SOUL.md`), and the agent runs on `ZOOWORK_MODEL` (default `litellm/claude-opus-5-5`). The server starts the agent and saves its id on the store profile page. To use an agent you built yourself in ZooWork, paste its id there instead. Each request opens a ZooWork session, sends the prompt and streams back the reply.
 
 `ZOOWORK_AGENTS` sets which roles run live (default `promo,concierge`, i.e. the billboard and the shift summary). Set it to `all` to also run service, returns, stylist and gatekeeper live. That sends a ZooWork request for every simulated shopper, so expect more usage. Roles that aren't live, and any call that fails, use the built-in simulator, and the UI labels each reply "ZooWork live" or "Simulated".
+
+**Billboard display.** In the promo engine, the owner chooses what the board in the room shows: the ad artwork, the ad as text, or nothing (the house offer). The live offer still goes to buyer agents either way.
 
 **Ad artwork.** Promo agents get ZooWork's `designer` skill. After the offer is drafted (about 7 s), the same agent paints a 2400×840 billboard image in the background (about 2–3 minutes). The server downloads the image to `server/data/ads/` and shows it in the draft, on the shop's billboard and on the offer's ad page (`/m/:shop/ads/:offer`). Until it's ready, or without ZooWork, the ad is laid out from the offer text and product.
 
