@@ -14,7 +14,7 @@ view =
         [ nav [ class "toc", attribute "aria-label" "Design sections" ]
             (List.map (\( anchor, label ) -> a [ href ("#" ++ anchor) ] [ text label ]) toc)
         , div [ class "docbody" ]
-            [ idea, architecture, sponsors, integrations, agents, protocol, flow, voice, frontEnd, mission, dataModel, demo, risks ]
+            [ idea, architecture, sponsors, integrations, agents, protocol, flow, voice, frontEnd, mission, realData, dataModel, demo, risks ]
         ]
 
 
@@ -30,6 +30,7 @@ toc =
     , ( "d-voice", "Phone calls" )
     , ( "d-front", "Front end" )
     , ( "d-mission", "Mission control" )
+    , ( "d-realdata", "Getting real data" )
     , ( "d-data", "Data model" )
     , ( "d-demo", "Demo script" )
     , ( "d-risks", "Risks and open questions" )
@@ -438,6 +439,58 @@ mission =
         , div [ class "callout" ]
             [ b [] [ text "Reliability." ]
             , text " The view loads the snapshot and the last 200 messages over REST, then switches to the stream. If the stream drops, it polls the wire every 3 s with after=<last id> and drops duplicates by id. If the API is unreachable, it shows sample data and retries every 10 s. While a mission stream is open, every merchant with simulation on keeps running."
+            ]
+        ]
+
+
+realData : Html msg
+realData =
+    let
+        row cells =
+            tr [] (List.map (\c -> td [] [ text c ]) cells)
+    in
+    docSection "d-realdata"
+        "Getting real data"
+        "From simulated buyer agents to real ones"
+        [ p [ class "lede" ] [ text "Today the buyer agents are simulated. Most of what the console shows can come from real sources now. This section is the plan for the next team: what each source gives us, how it gets into Tabard, and which view shows it." ]
+        , div [ class "callout" ]
+            [ b [] [ text "What a merchant can and can't see." ]
+            , text " A merchant sees what an agent sends to the store: who it is, what it searches, what it puts in the cart, and what it buys. It never sees the shopper's private chat with that agent. Design every feature around the first and never promise the second."
+            ]
+        , h3 [] [ text "Sources, in the order to build them" ]
+        , div [ class "tbl-wrap panel" ]
+            [ table [ class "agents" ]
+                [ thead [] [ tr [] (List.map (\h -> th [] [ text h ]) [ "Source", "What we get", "How it enters Tabard", "Shows up in" ]) ]
+                , tbody []
+                    [ row [ "1. Tabard as the agent endpoint (MCP server + Universal Commerce Protocol)", "Real agent requests: catalog searches, questions, carts, checkouts", "Each merchant gets an MCP and UCP endpoint. Every tool call becomes a room message (role buyer), and our agents' replies are posted back. Test with Claude or ChatGPT connectors acting as the buyer agent.", "Rooms, the wire, who-talks-to-whom" ]
+                    , row [ "2. Agent identity: Visa Trusted Agent Protocol / Web Bot Auth", "A signed identity on every agent request (HTTP Message Signatures, Ed25519), checked against Visa's key directory", "Gatekeeper middleware checks the signature before a room opens and stores the key id and result on the room. Or verify at the edge (Cloudflare, Akamai) and read the verdict header.", "Security & fraud, agents seen, blocked count" ]
+                    , row [ "3. Shopify app (Admin API + webhooks)", "Orders, including Muse orders paid with Shop Pay; products, customers, returns", "OAuth app install per merchant. orders/create, refunds/create and returns webhooks write to transactions and approvals; the catalog sync feeds products and Moss.", "Revenue, purchase history, refunds queue" ]
+                    , row [ "4. Stripe / PayPal webhooks", "Agentic checkouts (Stripe Link single-use cards, PayPal), refunds, disputes, Radar risk scores", "Payment webhooks attach to transactions; Radar and dispute signals add to the risk score.", "Revenue, fraud signals, risk score" ]
+                    , row [ "5. Edge and bot logs (Cloudflare Logpush / bot analytics)", "Every agent and bot that touched the site, verified or not, request rates, blocks", "A periodic import into an agents_seen table, grouped by operator and signature status.", "Security & fraud, Mission control totals" ]
+                    , row [ "6. Service channels (helpdesk, Twilio / LiveKit)", "Customer messages, call transcripts", "Helpdesk webhooks open service rooms; call transcripts go into the calls table and the room.", "Customer desk, calls, service rooms" ]
+                    , row [ "7. Band rooms with partners", "True agent-to-agent conversation in a shared room", "Once a buyer platform or a partner's agent joins Band, rooms are live Band rooms instead of local ones. The room protocol stays the same.", "Everything; this is the end state" ]
+                    ]
+                ]
+            ]
+        , h3 [] [ text "One rule for the data model" ]
+        , p [] [ text "Normalize every source into the tables we already have (rooms, messages, transactions, approvals, decisions) and record where each row came from in a source column. Real and simulated traffic can then run side by side, and the simulator can be switched off store by store as real sources come online." ]
+        , ul []
+            [ li [] [ b [] [ text "Today:" ], text " only messages and promos have ", mono "source", text ", with values ", mono "zoowork", text " (written by a ZooWork agent call), ", mono "sim", text " or null (people and fixed lines: buyer text, staff, system notes). The wire's source badge reads it." ]
+            , li [] [ b [] [ text "Next:" ], text " add the new values ", mono "mcp", text ", ", mono "ucp", text ", ", mono "shopify", text ", ", mono "stripe", text ", ", mono "tap", text " and ", mono "cloudflare", text ", and add a source column to transactions, rooms, customers and products, which don't have one yet." ]
+            , li [] [ b [] [ text "Not sources:" ], text " Band is a delivery channel, tracked separately in ", mono "messages.band_status", text " (sent | failed), ", mono "band_message_id", text " and ", mono "rooms.band_chat_id", text "; a message can be zoowork and sent over Band. Tavily is a lookup, recorded in a message's cites and in import sources." ]
+            ]
+        , h3 [] [ text "Privacy and consent" ]
+        , ul []
+            [ li [] [ text "Store only what agents send us. Hash emails and payment references, and keep raw request bodies only as long as disputes need them." ]
+            , li [] [ text "Ask each merchant for the narrowest OAuth scopes (read orders, write refunds only if they turn on auto-refunds)." ]
+            , li [] [ text "Show the merchant which sources are connected, and let them disconnect any of them." ]
+            ]
+        , h3 [] [ text "Open questions to check first" ]
+        , ul []
+            [ li [] [ text "How Shopify labels orders that Muse places through Shop Pay (sales channel, app id or order tags), so we can tell agent orders from human ones." ]
+            , li [] [ text "Which buyer agents actually send Trusted Agent Protocol signatures today, and from which platforms." ]
+            , li [] [ text "Whether Muse can find Shopify development stores, or only live stores in Shopify Catalog." ]
+            , li [] [ text "How Dots connects to merchants (no public merchant integration found yet)." ]
             ]
         ]
 

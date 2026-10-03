@@ -11834,6 +11834,295 @@ var $author$project$Design$protocol = A4(
 				])),
 			$author$project$Design$codeBlock('// buyer agent → room\n{ "type": "intent",\n  "on_behalf_of": { "email_hash": "sha256:9f2c…", "consent": "purchase_upto_300_usd" },\n  "goal": "wool coat, size M, under $300, arrives by Fri Oct 9",\n  "platform": "muse", "signature": "ed25519:…" }\n\n// @promo → buyer agent\n{ "type": "offer", "offer_id": "of_8812", "sku": "LO-COAT-CAMEL-M",\n  "price": 268.00, "list": 298.00, "reason": "returning_customer_10pct",\n  "expires_at": "2026-10-03T18:00:00Z" }\n\n// @returns → console (needs a person)\n{ "type": "approval_request", "case": "RF-2207", "amount": 214.00,\n  "risk": 72, "signals": ["3rd return in 60d", "listed on resale site"],\n  "recommend": "deny_refund_offer_exchange" }\n\nMessage types: intent · question · recommendation · offer · cart · checkout\n               · refund_request · verdict · approval_request · handoff · block')
 		]));
+var $author$project$Design$realData = function () {
+	var row = function (cells) {
+		return A2(
+			$elm$html$Html$tr,
+			_List_Nil,
+			A2(
+				$elm$core$List$map,
+				function (c) {
+					return A2(
+						$elm$html$Html$td,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text(c)
+							]));
+				},
+				cells));
+	};
+	return A4(
+		$author$project$Design$docSection,
+		'd-realdata',
+		'Getting real data',
+		'From simulated buyer agents to real ones',
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('lede')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Today the buyer agents are simulated. Most of what the console shows can come from real sources now. This section is the plan for the next team: what each source gives us, how it gets into Tabard, and which view shows it.')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('callout')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$b,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('What a merchant can and can\'t see.')
+							])),
+						$elm$html$Html$text(' A merchant sees what an agent sends to the store: who it is, what it searches, what it puts in the cart, and what it buys. It never sees the shopper\'s private chat with that agent. Design every feature around the first and never promise the second.')
+					])),
+				A2(
+				$elm$html$Html$h3,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Sources, in the order to build them')
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('tbl-wrap panel')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$table,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('agents')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$thead,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$tr,
+										_List_Nil,
+										A2(
+											$elm$core$List$map,
+											function (h) {
+												return A2(
+													$elm$html$Html$th,
+													_List_Nil,
+													_List_fromArray(
+														[
+															$elm$html$Html$text(h)
+														]));
+											},
+											_List_fromArray(
+												['Source', 'What we get', 'How it enters Tabard', 'Shows up in'])))
+									])),
+								A2(
+								$elm$html$Html$tbody,
+								_List_Nil,
+								_List_fromArray(
+									[
+										row(
+										_List_fromArray(
+											['1. Tabard as the agent endpoint (MCP server + Universal Commerce Protocol)', 'Real agent requests: catalog searches, questions, carts, checkouts', 'Each merchant gets an MCP and UCP endpoint. Every tool call becomes a room message (role buyer), and our agents\' replies are posted back. Test with Claude or ChatGPT connectors acting as the buyer agent.', 'Rooms, the wire, who-talks-to-whom'])),
+										row(
+										_List_fromArray(
+											['2. Agent identity: Visa Trusted Agent Protocol / Web Bot Auth', 'A signed identity on every agent request (HTTP Message Signatures, Ed25519), checked against Visa\'s key directory', 'Gatekeeper middleware checks the signature before a room opens and stores the key id and result on the room. Or verify at the edge (Cloudflare, Akamai) and read the verdict header.', 'Security & fraud, agents seen, blocked count'])),
+										row(
+										_List_fromArray(
+											['3. Shopify app (Admin API + webhooks)', 'Orders, including Muse orders paid with Shop Pay; products, customers, returns', 'OAuth app install per merchant. orders/create, refunds/create and returns webhooks write to transactions and approvals; the catalog sync feeds products and Moss.', 'Revenue, purchase history, refunds queue'])),
+										row(
+										_List_fromArray(
+											['4. Stripe / PayPal webhooks', 'Agentic checkouts (Stripe Link single-use cards, PayPal), refunds, disputes, Radar risk scores', 'Payment webhooks attach to transactions; Radar and dispute signals add to the risk score.', 'Revenue, fraud signals, risk score'])),
+										row(
+										_List_fromArray(
+											['5. Edge and bot logs (Cloudflare Logpush / bot analytics)', 'Every agent and bot that touched the site, verified or not, request rates, blocks', 'A periodic import into an agents_seen table, grouped by operator and signature status.', 'Security & fraud, Mission control totals'])),
+										row(
+										_List_fromArray(
+											['6. Service channels (helpdesk, Twilio / LiveKit)', 'Customer messages, call transcripts', 'Helpdesk webhooks open service rooms; call transcripts go into the calls table and the room.', 'Customer desk, calls, service rooms'])),
+										row(
+										_List_fromArray(
+											['7. Band rooms with partners', 'True agent-to-agent conversation in a shared room', 'Once a buyer platform or a partner\'s agent joins Band, rooms are live Band rooms instead of local ones. The room protocol stays the same.', 'Everything; this is the end state']))
+									]))
+							]))
+					])),
+				A2(
+				$elm$html$Html$h3,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('One rule for the data model')
+					])),
+				A2(
+				$elm$html$Html$p,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Normalize every source into the tables we already have (rooms, messages, transactions, approvals, decisions) and record where each row came from in a source column. Real and simulated traffic can then run side by side, and the simulator can be switched off store by store as real sources come online.')
+					])),
+				A2(
+				$elm$html$Html$ul,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$b,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Today:')
+									])),
+								$elm$html$Html$text(' only messages and promos have '),
+								$author$project$Design$mono('source'),
+								$elm$html$Html$text(', with values '),
+								$author$project$Design$mono('zoowork'),
+								$elm$html$Html$text(' (written by a ZooWork agent call), '),
+								$author$project$Design$mono('sim'),
+								$elm$html$Html$text(' or null (people and fixed lines: buyer text, staff, system notes). The wire\'s source badge reads it.')
+							])),
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$b,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Next:')
+									])),
+								$elm$html$Html$text(' add the new values '),
+								$author$project$Design$mono('mcp'),
+								$elm$html$Html$text(', '),
+								$author$project$Design$mono('ucp'),
+								$elm$html$Html$text(', '),
+								$author$project$Design$mono('shopify'),
+								$elm$html$Html$text(', '),
+								$author$project$Design$mono('stripe'),
+								$elm$html$Html$text(', '),
+								$author$project$Design$mono('tap'),
+								$elm$html$Html$text(' and '),
+								$author$project$Design$mono('cloudflare'),
+								$elm$html$Html$text(', and add a source column to transactions, rooms, customers and products, which don\'t have one yet.')
+							])),
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$b,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Not sources:')
+									])),
+								$elm$html$Html$text(' Band is a delivery channel, tracked separately in '),
+								$author$project$Design$mono('messages.band_status'),
+								$elm$html$Html$text(' (sent | failed), '),
+								$author$project$Design$mono('band_message_id'),
+								$elm$html$Html$text(' and '),
+								$author$project$Design$mono('rooms.band_chat_id'),
+								$elm$html$Html$text('; a message can be zoowork and sent over Band. Tavily is a lookup, recorded in a message\'s cites and in import sources.')
+							]))
+					])),
+				A2(
+				$elm$html$Html$h3,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Privacy and consent')
+					])),
+				A2(
+				$elm$html$Html$ul,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Store only what agents send us. Hash emails and payment references, and keep raw request bodies only as long as disputes need them.')
+							])),
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Ask each merchant for the narrowest OAuth scopes (read orders, write refunds only if they turn on auto-refunds).')
+							])),
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Show the merchant which sources are connected, and let them disconnect any of them.')
+							]))
+					])),
+				A2(
+				$elm$html$Html$h3,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Open questions to check first')
+					])),
+				A2(
+				$elm$html$Html$ul,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('How Shopify labels orders that Muse places through Shop Pay (sales channel, app id or order tags), so we can tell agent orders from human ones.')
+							])),
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Which buyer agents actually send Trusted Agent Protocol signatures today, and from which platforms.')
+							])),
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Whether Muse can find Shopify development stores, or only live stores in Shopify Catalog.')
+							])),
+						A2(
+						$elm$html$Html$li,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('How Dots connects to merchants (no public merchant integration found yet).')
+							]))
+					]))
+			]));
+}();
 var $author$project$Design$risks = A4(
 	$author$project$Design$docSection,
 	'd-risks',
@@ -12157,6 +12446,7 @@ var $author$project$Design$toc = _List_fromArray(
 		_Utils_Tuple2('d-voice', 'Phone calls'),
 		_Utils_Tuple2('d-front', 'Front end'),
 		_Utils_Tuple2('d-mission', 'Mission control'),
+		_Utils_Tuple2('d-realdata', 'Getting real data'),
 		_Utils_Tuple2('d-data', 'Data model'),
 		_Utils_Tuple2('d-demo', 'Demo script'),
 		_Utils_Tuple2('d-risks', 'Risks and open questions')
@@ -12256,7 +12546,7 @@ var $author$project$Design$view = A2(
 					$elm$html$Html$Attributes$class('docbody')
 				]),
 			_List_fromArray(
-				[$author$project$Design$idea, $author$project$Design$architecture, $author$project$Design$sponsors, $author$project$Design$integrations, $author$project$Design$agents, $author$project$Design$protocol, $author$project$Design$flow, $author$project$Design$voice, $author$project$Design$frontEnd, $author$project$Design$mission, $author$project$Design$dataModel, $author$project$Design$demo, $author$project$Design$risks]))
+				[$author$project$Design$idea, $author$project$Design$architecture, $author$project$Design$sponsors, $author$project$Design$integrations, $author$project$Design$agents, $author$project$Design$protocol, $author$project$Design$flow, $author$project$Design$voice, $author$project$Design$frontEnd, $author$project$Design$mission, $author$project$Design$realData, $author$project$Design$dataModel, $author$project$Design$demo, $author$project$Design$risks]))
 		]));
 var $author$project$Mission$FilterHandle = function (a) {
 	return {$: 11, a: a};
