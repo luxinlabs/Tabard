@@ -39,6 +39,16 @@ On the landing page, choose **Or open a new shop → From a store link** and pas
 
 Set `TAVILY_API_KEY` in `server/.env` (required for importing). Tavily is also used by the promo engine: each drafted offer's competitor price is the median of prices Tavily finds for that product on other sites (shown as a `tavily · …` chip). Without Tavily that figure is an estimate and labelled as one. Customers in an imported shop are sample shoppers, because storefronts don't expose real ones.
 
+### Band: where agents talk to agents
+
+Every Tabard room (a buyer agent's shopping, service or blocked-bot session, or a team room the owner opens) is mirrored to a real [Band](https://band.ai) chat room:
+
+- Each agent posts as itself through Band's Agent API and @mentions whoever should act on the message.
+- The concierge hands work to specialists through Band. It @mentions `@stylist` ("suggest something in stock") and `@promo` ("best price for this buyer"). Each specialist pulls the request from its own Band inbox (`GET /messages/next`), marks it processing, answers in the room, and marks it processed.
+- **Agent room** (station 5 on the shop floor) shows every room as a thread, with @mentions and a ◆ Band badge on each delivered message. The owner can open a **team room** and @mention agents to discuss something, e.g. "@stylist @promo what should we push this weekend?". Roles that run on ZooWork answer with their live agent.
+
+Setup: sign up at app.band.ai (free), register one **Remote Agent** per role at app.band.ai/agents (concierge, shopper, stylist, promo, service, returns, gatekeeper), and put each API key in `server/.env` as `BAND_KEY_<ROLE>` (see `server/.env.example`). Band turns on when the concierge and shopper keys are set. Without Band, rooms run locally and hand-offs are direct calls.
+
 ### ZooWork agents
 
 Tabard's merchant agents run on ZooWork managed agents through the official SDK (`@zoowork-ai/sdk`).

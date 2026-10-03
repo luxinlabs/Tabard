@@ -66,8 +66,13 @@ export const promos = (mid: number) => all(`SELECT * FROM promos WHERE merchant_
   ...p, needs_approval: !!p.needs_approval, cites: parse(p.cites, []),
   image_url: p.image_status === "ready" && p.image_path ? `/api/merchants/${mid}/promos/${p.id}/image?v=${encodeURIComponent(p.image_path)}` : null,
 }) as Row);
-export const rooms = (mid: number) => all(`SELECT r.*, c.name AS customer_name FROM rooms r LEFT JOIN customers c ON c.id = r.customer_id
-  WHERE r.merchant_id = ? ORDER BY r.id DESC LIMIT 50`, mid);
+export const rooms = (mid: number) => all(`SELECT r.*, c.name AS customer_name,
+    (SELECT COUNT(*) FROM messages m WHERE m.room_id = r.id) AS message_count,
+    (SELECT COUNT(*) FROM messages m WHERE m.room_id = r.id AND m.band_status = 'sent') AS band_sent,
+    (SELECT sender || ': ' || text FROM messages m WHERE m.room_id = r.id AND m.role != 'sys' ORDER BY m.id DESC LIMIT 1) AS last_text,
+    (SELECT MAX(created_at) FROM messages m WHERE m.room_id = r.id) AS last_at
+  FROM rooms r LEFT JOIN customers c ON c.id = r.customer_id
+  WHERE r.merchant_id = ? ORDER BY (r.kind = 'team') DESC, COALESCE((SELECT MAX(id) FROM messages m WHERE m.room_id = r.id), 0) DESC LIMIT 60`, mid);
 
 // Lifetime numbers for the merchant profile page.
 export const totals = (mid: number) => get(`SELECT

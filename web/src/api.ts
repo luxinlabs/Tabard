@@ -35,7 +35,10 @@ export type Product = { id: number; sku: string; name: string; category: string;
 export type Screen = { text: string; score: number; verdict: string; action: string; why: string[]; cites: string[]; source: string };
 export type Txn = { id: number; code: string; sku: string; buyer_handle: string; customer_id: number | null; customer_name: string | null; qty: number; amount: number; type: "order" | "refund"; flags: string[]; flag_labels: string[]; risk: number; status: string; screen: Screen | null; created_at: string };
 export type Ticket = { id: number; room_id: number; customer_id: number; customer_name: string; tier: string; risk: number; phone: string; handle: string; platform: string; topic: string; status: "agent" | "staff" | "resolved"; typing: boolean; last_text: string | null; created_at: string };
-export type Message = { id: number; sender: string; role: "buyer" | "agent" | "staff" | "sys"; text: string; cites: string[]; source: string | null; created_at: string };
+export type Message = { id: number; sender: string; role: "buyer" | "agent" | "staff" | "sys"; text: string; cites: string[]; source: string | null; created_at: string; band_status: "sent" | "failed" | null };
+export type Room = { id: number; kind: "shop" | "service" | "bot" | "team"; handle: string; platform: string; intent: string | null; state: string; customer_name: string | null;
+  message_count: number; band_sent: number; band_chat_id: string | null; last_text: string | null; last_at: string | null; opened_at: string };
+export type RoomThread = Room & { messages: Message[]; band: { live: boolean; chatId: string | null; sent: number; failed: number }; typing: string[] };
 export type CallLine = { who: "agent" | "caller" | "staff"; text: string; cites?: string[]; source?: string };
 export type Call = { id: number; customer_id: number; customer_name: string; phone: string; topic: string; status: "ringing" | "live" | "ended"; staff: boolean; handled_by: string | null; lines: CallLine[]; started_at: string; ended_at: string | null };
 export type Approval = { id: number; code: string; customer_name: string; order_code: string; amount: number; risk: number; recommendation: string; reasons: string[]; status: string; ticket_id: number | null };
@@ -71,7 +74,7 @@ export function useAction<V = void, R = unknown>(mid: number, fn: (v: V) => { pa
   });
 }
 
-export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: () => api<{ ok: boolean; zoowork: boolean; tavily: boolean; claude: boolean }>("/health"), staleTime: 60_000 });
+export const useHealth = () => useQuery({ queryKey: ["health"], queryFn: () => api<{ ok: boolean; band: boolean; zoowork: boolean; tavily: boolean; claude: boolean }>("/health"), staleTime: 60_000 });
 
 export type Theme = { wall: string; floorA: string; floorB: string; accent: string; trim: string; vibe?: string };
 export type ImportPreview = {
@@ -100,6 +103,7 @@ export function useShopStream(mid: number, onMessage: (m: StreamMsg) => void) {
         for (const k of msg.keys) {
           const [name, id] = k.split(":");
           qc.invalidateQueries({ queryKey: id ? [mid, name, Number(id)] : [mid, name] });
+          if (name === "room") qc.invalidateQueries({ queryKey: [mid, "rooms"] });
         }
       }
       if (msg.type === "event") qc.invalidateQueries({ queryKey: [mid, "events"] });

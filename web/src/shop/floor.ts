@@ -3,12 +3,13 @@
 import type { FloorVisitor, Spot } from "../api";
 
 export const W = 1200, H = 720;
-export type StationName = "billboard" | "shelves" | "service" | "monitor";
+export type StationName = "billboard" | "shelves" | "service" | "monitor" | "rooms";
 export const STATIONS: Record<StationName, { x: number; y: number }> = {
   billboard: { x: 240, y: 222 },
   shelves: { x: 905, y: 238 },
   service: { x: 880, y: 560 },
   monitor: { x: 250, y: 600 },
+  rooms: { x: 600, y: 470 },
 };
 // furniture you can't walk through (stage coordinates, at foot level)
 const BLOCKS = [[60, 400, 440, 548], [780, 395, 1160, 505], [0, 0, 1200, 190]];
@@ -194,7 +195,7 @@ export class Floor {
     const k = e.key.toLowerCase();
     if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) { this.keys.add(k); e.preventDefault(); }
     if ((k === "e" || k === " ") && this.nearest) { e.preventDefault(); this.opts.open(this.nearest); }
-    const hot = ({ "1": "billboard", "2": "shelves", "3": "service", "4": "monitor" } as Record<string, StationName>)[k];
+    const hot = ({ "1": "billboard", "2": "shelves", "3": "service", "4": "monitor", "5": "rooms" } as Record<string, StationName>)[k];
     if (hot) this.goTo(hot);
   };
   private onKeyUp = (e: KeyboardEvent) => { this.keys.delete(e.key.toLowerCase()); };

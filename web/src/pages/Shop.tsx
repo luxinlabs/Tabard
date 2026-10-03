@@ -8,6 +8,7 @@ import { PromoPanel } from "../shop/PromoPanel";
 import { ServicePanel } from "../shop/ServicePanel";
 import { GoodsPanel } from "../shop/GoodsPanel";
 import { DashboardPanel } from "../shop/DashboardPanel";
+import { AgentRoomsPanel } from "../shop/AgentRoomsPanel";
 
 type Toast = { id: number; text: string; open?: string; ticketId?: number };
 const TITLES: Record<StationName, [string, string]> = {
@@ -15,6 +16,7 @@ const TITLES: Record<StationName, [string, string]> = {
   shelves: ["Goods & fraud check", "The shelf · Lose less"],
   service: ["Customer service", "The counter · Run leaner"],
   monitor: ["Monitoring table", "Everything in the shop, live"],
+  rooms: ["Agent room", "Where agents talk to agents, on Band"],
 };
 
 export default function Shop() {
@@ -35,6 +37,7 @@ export default function Shop() {
   const [modal, setModal] = useState<StationName | null>(null);
   const [serviceTab, setServiceTab] = useState<"chat" | "phone">("chat");
   const [ticketId, setTicketId] = useState<number | null>(null);
+  const [roomId, setRoomId] = useState<number | null>(null);
   const [billboard, setBillboard] = useState<Billboard>({ headline: "", body: "" });
   const [ringing, setRinging] = useState(false);
   const [busy, setBusy] = useState<string[]>([]);
@@ -125,6 +128,7 @@ export default function Shop() {
             {m?.source_platform && <div className="platform-sign">From {PLATFORM_LABEL[m.source_platform] ?? "the web"}</div>}
             {m?.source_platform && m.tagline && <div className="shoptag">{m.tagline}</div>}
             <div className="rug" />
+            <Station id="rooms-station" name="rooms" near={near} label="Agent room" k="5" open={open}><span /></Station>
             <div className="plant" style={{ left: 14, top: 600 }} />
             <div className="plant" style={{ left: 1140, top: 620 }} />
 
@@ -177,7 +181,7 @@ export default function Shop() {
       <footer className="ticker">
         <span className="label">Agent room feed</span>
         <div className="items">{ticker.map(e => <span className="it new" key={e.id}><b>{e.actor}</b> {e.text}</span>)}</div>
-        <span className="helpbar">Click to walk · <kbd>WASD</kbd> move · <kbd>E</kbd> use · <kbd>1</kbd>–<kbd>4</kbd> jump</span>
+        <span className="helpbar">Click to walk · <kbd>WASD</kbd> move · <kbd>E</kbd> use · <kbd>1</kbd>–<kbd>5</kbd> jump</span>
       </footer>
 
       {modal && m && (
@@ -186,6 +190,7 @@ export default function Shop() {
           {modal === "service" && <ServicePanel mid={mid} tab={serviceTab} setTab={setServiceTab} ticketId={ticketId} setTicketId={setTicketId} />}
           {modal === "shelves" && <GoodsPanel mid={mid} />}
           {modal === "monitor" && <DashboardPanel mid={mid} />}
+          {modal === "rooms" && <AgentRoomsPanel mid={mid} roomId={roomId} setRoomId={setRoomId} />}
         </Modal>
       )}
 

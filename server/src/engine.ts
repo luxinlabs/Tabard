@@ -6,8 +6,9 @@
 import { all, get, insert, iso, parse, run, type Row } from "./db.ts";
 import { BOT_ASKS, CALL_SCRIPTS, TICKET_SCRIPTS, type AgentKey } from "./catalog.ts";
 import { publish, subscriberCount, onSubscribersChange } from "./bus.ts";
-import { designAd, runAgent, zooworkRoleLive, type AgentResult } from "./zoowork.ts";
+import { designAd, discussLive, runAgent, zooworkRoleLive, type AgentResult } from "./zoowork.ts";
 import { competitorPrice } from "./importer.ts";
+import { handoff, mirror } from "./band.ts";
 import fs from "node:fs";
 import path from "node:path";
 import { DATA_DIR } from "./db.ts";
@@ -55,6 +56,83 @@ export class Engine {
     insert("INSERT INTO decisions (merchant_id, agent, decision, basis, version, created_at) VALUES (?, ?, ?, ?, ?, ?)", this.mid, agentHandle, decision, basis, v, iso());
     this.changed("decisions");
   }
+  // Every room message goes through here: stored, then posted to the Band room when Band is on.
+  msg(roomId: number, sender: string, role: string, text: string, opts: { cites?: string[]; source?: string | null; band?: boolean } = {}) {
+    const id = insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, cites, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      this.mid, roomId, sender, role, text, JSON.stringify(opts.cites ?? []), opts.source ?? null, iso());
+    if (opts.band !== false) mirror(id);
+    this.changed(`room:${roomId}`);
+    return id;
+  }
+
+  // The concierge hands work to a specialist. With Band on, the request and the answer travel through the Band room
+  // (the specialist pulls it from its Band inbox); otherwise the specialist is asked directly.
+  async viaBand(roomId: number, to: "stylist" | "promo" | "returns" | "service", ask: string, answer: () => Promise<AgentResult>): Promise<AgentResult> {
+    const askId = this.msg(roomId, "@concierge", "agent", ask, { band: false });
+    let result: AgentResult | null = null;
+    const viaBand = await handoff({ roomId, from: "concierge", to, ask, askMessageId: askId, answer: async () => (result = await answer()).text });
+    if (viaBand && result) {
+      const r = result as AgentResult;
+      const id = this.msg(roomId, `@${to}`, "agent", r.text, { cites: r.cites, source: r.source, band: false });
+      run("UPDATE messages SET band_message_id = ?, band_status = 'sent' WHERE id = ?", viaBand.bandMessageId, id);
+      return r;
+    }
+    if (!result) result = await answer();
+    const r = result as AgentResult;
+    this.msg(roomId, `@${to}`, "agent", r.text, { cites: r.cites, source: r.source });
+    return r;
+  }
+
+  // ------------------------------------------------------------ team rooms: the owner talks with the agents
+  createTeamRoom(topic: string) {
+    const id = insert("INSERT INTO rooms (merchant_id, handle, platform, kind, intent, state, opened_at) VALUES (?, '@staff/you', 'Team', 'team', ?, 'open', ?)", this.mid, topic, iso());
+    this.msg(id, "system", "sys", `Team room opened: ${topic}. @mention an agent to bring it in.`);
+    this.event("you", `opened a team room: ${topic}`, "staff");
+    this.changed("rooms");
+    return id;
+  }
+
+  async ownerSays(roomId: number, text: string) {
+    const room = get("SELECT * FROM rooms WHERE id = ? AND merchant_id = ?", roomId, this.mid);
+    if (!room) throw new HttpError(404, "room not found");
+    this.msg(roomId, "@staff/you", "staff", text);
+    const named = [...new Set([...text.matchAll(/@(concierge|stylist|promo|service|returns|gatekeeper)\b/g)].map(m => m[1] as AgentKey))];
+    const who: AgentKey[] = named.length ? named : ["concierge"];
+    for (const key of who) {
+      this.typingRooms.add(`${roomId}:${key}`); this.changed(`room:${roomId}`);
+      try {
+        const r = await this.discussAs(key, text, roomId);
+        this.msg(roomId, `@${key}`, "agent", r.text, { cites: r.cites, source: r.source });
+        this.say(`agent:${key}`, r.text.length > 70 ? r.text.slice(0, 68) + "…" : r.text);
+      } finally { this.typingRooms.delete(`${roomId}:${key}`); this.changed(`room:${roomId}`); }
+    }
+    this.event("you", `asked ${who.map(k => "@" + k).join(", ")} in a room`, "staff");
+  }
+  typingRooms = new Set<string>();
+
+  // What an agent says when the owner brings it into a discussion: ZooWork when that role is live, else from shop data.
+  private async discussAs(key: AgentKey, text: string, roomId: number): Promise<AgentResult> {
+    const t0 = Date.now();
+    const m = this.merchant(), o = Q.overview(this.mid);
+    const products = all("SELECT * FROM products WHERE merchant_id = ? ORDER BY sold DESC", this.mid);
+    const live = this.livePromo();
+    const flagged = all("SELECT * FROM transactions WHERE merchant_id = ? AND flags != '[]' AND status IN ('Needs review','Held') ORDER BY created_at DESC", this.mid);
+    const history = all("SELECT sender, text FROM messages WHERE room_id = ? ORDER BY id DESC LIMIT 12", roomId).reverse().map(x => `${x.sender}: ${x.text}`).join("\n");
+    const facts: Record<AgentKey, string> = {
+      concierge: `Today: $${o.revenue} from ${o.orders} orders, ${o.handled} handled without staff, ${o.blocked} bots blocked, ${o.waiting} decisions waiting, ${o.openTickets} at the counter.`,
+      stylist: `Best sellers: ${products.slice(0, 3).map(p => `${p.name} (${p.sold} sold, ${p.stock} left)`).join("; ")}. Low stock: ${products.filter(p => p.stock < 6).map(p => p.name).join(", ") || "none"}.`,
+      promo: live ? `Live offer: "${live.headline}" (${live.pct}% off ${live.product}, seen by ${live.seen} buyer agents). Discount cap ${m.discount_cap}%.` : `No live offer; house offer is "${m.house_offer}". Discount cap ${m.discount_cap}%.`,
+      service: `${o.openTickets} conversations at the counter; ${o.handled} closed by agents today.`,
+      returns: `${flagged.length} transactions need review${flagged[0] ? `, e.g. ${flagged[0].code} (${JSON.parse(flagged[0].flags).join(", ")})` : ""}. Risk threshold ${m.risk_threshold}.`,
+      gatekeeper: `${o.blocked} bots blocked today; unsigned agents and bulk orders on limited items are refused.`,
+    };
+    const live2 = await discussLive(key, { merchant: m, agentRow: get("SELECT * FROM agents WHERE merchant_id = ? AND key = ?", this.mid, key) },
+      `The owner says in a team room: "${text}"\nRecent room messages:\n${history}\nFacts you know: ${facts[key]}\nAnswer the owner in two or three sentences.`);
+    if (live2) return { text: live2, data: null, cites: [`zoowork · ${((Date.now() - t0) / 1000).toFixed(1)} s`], source: "zoowork", ms: Date.now() - t0 };
+    await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+    return { text: `${facts[key]} ${key === "concierge" ? "Anything you want me to route to a specialist?" : ""}`.trim(), data: null, cites: [], source: "sim", ms: Date.now() - t0 };
+  }
+
   livePromo() { return get("SELECT * FROM promos WHERE merchant_id = ? AND status = 'live'", this.mid) || null; }
 
   async ask(key: AgentKey, input: unknown, extra: { customer?: Row | null; stats?: Record<string, number>; pendingApproval?: boolean } = {}): Promise<AgentResult> {
@@ -172,8 +250,8 @@ export class Engine {
       this.floor("alarm");
       this.floor("coin", { id: v.id, text: "Blocked", bad: true });
       const roomId = insert("INSERT INTO rooms (merchant_id, handle, platform, kind, intent, state, opened_at, closed_at) VALUES (?, ?, 'Unverified', 'bot', ?, 'blocked', ?, ?)", this.mid, v.handle, ask, iso(), iso());
-      insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, created_at) VALUES (?, ?, ?, 'buyer', ?, ?)", this.mid, roomId, v.handle, ask, iso());
-      insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, cites, source, created_at) VALUES (?, ?, '@gatekeeper', 'sys', ?, ?, ?, ?)", this.mid, roomId, r.text, JSON.stringify(r.cites), r.source, iso());
+      this.msg(roomId, v.handle, "buyer", ask);
+      this.msg(roomId, "@gatekeeper", "agent", r.text, { cites: r.cites, source: r.source });
       const limited = get("SELECT * FROM products WHERE merchant_id = ? ORDER BY (name LIKE '%limited%') DESC, stock DESC LIMIT 1", this.mid);
       if (limited) {
         const qty = pick([12, 24, 40]);
@@ -209,23 +287,25 @@ export class Engine {
     const want = pick([`Do you have the ${p.name.toLowerCase()} in stock?`, `Looking for ${p.category.toLowerCase()}, something like the ${p.name.toLowerCase()}?`, `Best price on the ${p.name.toLowerCase()} for a returning customer?`]);
     const roomId = insert("INSERT INTO rooms (merchant_id, handle, platform, kind, customer_id, intent, state, opened_at) VALUES (?, ?, ?, 'shop', ?, ?, 'open', ?)", this.mid, v.handle, v.platform, c.id, want, iso());
     v.roomId = roomId;
-    const msg = (sender: string, role: string, text: string, r?: AgentResult) =>
-      insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, cites, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", this.mid, roomId, sender, role, text, JSON.stringify(r?.cites || []), r?.source || null, iso());
+    const msg = (sender: string, role: string, text: string, r?: AgentResult) => this.msg(roomId, sender, role, text, { cites: r?.cites, source: r?.source });
 
     this.move(v, { to: "shelf", index: Math.floor(Math.random() * 6) });
     await this.wait(3400, g);
     this.say(v.id, want, "buyer"); msg(v.handle, "buyer", want);
     this.event(v.handle, want);
     await this.wait(1200, g);
-    const st = await this.ask("stylist", { product: p }, { customer: c });
-    this.say("agent:stylist", st.text); msg("@stylist", "agent", st.text, st);
+    const st = await this.viaBand(roomId, "stylist", `@stylist ${v.handle} asks: "${want}" Suggest something in stock.`,
+      () => this.ask("stylist", { product: p }, { customer: c }));
+    this.say("agent:stylist", st.text);
     this.event("@stylist", `suggested ${p.name} to ${v.handle}`);
     await this.wait(2200, g);
 
     let price = Math.round(p.price * 0.9), reason = "returning-customer rate";
     if (promo && promo.sku === p.sku) { price = promo.price; reason = "billboard offer"; run("UPDATE promos SET seen = seen + 1 WHERE id = ?", promo.id); }
-    const offer = `${money(price)} for you (${reason}).`;
-    this.say("agent:promo", offer); msg("@promo", "agent", offer);
+    const offerText = `${money(price)} for you (${reason}).`;
+    const offer = (await this.viaBand(roomId, "promo", `@promo best price on ${p.name} (${p.sku}, list ${money(p.price)}) for ${v.handle}?`,
+      async () => ({ text: offerText, data: null, cites: [], source: "sim" as const, ms: 0 }))).text;
+    this.say("agent:promo", offer);
     this.event("@promo", `offered ${money(price)} on ${p.name} (${reason})`);
     await this.wait(1800, g);
 
@@ -309,7 +389,7 @@ export class Engine {
   private visitorFor(tid: number) { return [...this.visitors.values()].find(v => v.ticketId === tid); }
 
   buyerSays(t: Row, text: string) {
-    insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, created_at) VALUES (?, ?, ?, 'buyer', ?, ?)", this.mid, t.room_id, t.handle, text, iso());
+    this.msg(t.room_id, t.handle, "buyer", text);
     const v = this.visitorFor(t.id);
     if (v) this.say(v.id, text, "buyer");
     this.event(t.handle, text, "service");
@@ -325,7 +405,7 @@ export class Engine {
     try { r = await this.ask("service", text, { customer: c, pendingApproval }); } finally { this.typing.delete(tid); }
     const t = this.ticket(tid);
     if (t.status !== "agent") { this.changed("tickets", `ticket:${tid}`); return; }
-    insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, cites, source, created_at) VALUES (?, ?, '@service', 'agent', ?, ?, ?, ?)", this.mid, t.room_id, r.text, JSON.stringify(r.cites), r.source, iso());
+    this.msg(t.room_id, "@service", "agent", r.text, { cites: r.cites, source: r.source });
     this.say("agent:service", r.text.length > 70 ? r.text.slice(0, 68) + "…" : r.text);
     this.event("@service", r.text.length > 90 ? r.text.slice(0, 88) + "…" : r.text, "service");
     if (r.data?.approval && !get("SELECT 1 FROM approvals WHERE merchant_id = ? AND customer_id = ? AND status = 'waiting'", this.mid, c.id)) {
@@ -347,7 +427,7 @@ export class Engine {
   }
 
   private sys(roomId: number, text: string) {
-    insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, created_at) VALUES (?, ?, 'system', 'sys', ?, ?)", this.mid, roomId, text, iso());
+    this.msg(roomId, "system", "sys", text);
   }
 
   resolveTicket(tid: number, by: "agent" | "staff") {
@@ -381,7 +461,7 @@ export class Engine {
     const t = this.ticket(tid);
     if (t.status === "resolved") throw new HttpError(409, "ticket is resolved");
     if (t.status !== "staff") run("UPDATE tickets SET status = 'staff' WHERE id = ?", tid);
-    insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, created_at) VALUES (?, ?, '@staff/you', 'staff', ?, ?)", this.mid, t.room_id, text, iso());
+    this.msg(t.room_id, "@staff/you", "staff", text);
     this.say("agent:service", "(staff) " + text.slice(0, 50));
     this.event("you", `replied to ${t.handle}`, "staff");
     this.changed("tickets", `ticket:${tid}`);
@@ -478,7 +558,7 @@ export class Engine {
     run("UPDATE transactions SET status = ? WHERE merchant_id = ? AND customer_id = ? AND type = 'refund' AND status = 'Needs review'", status === "Photo requested" ? "Held" : status, this.mid, a.customer_id);
     if (a.ticket_id) {
       const t = get("SELECT * FROM tickets WHERE id = ?", a.ticket_id);
-      if (t && t.status !== "resolved") insert("INSERT INTO messages (merchant_id, room_id, sender, role, text, created_at) VALUES (?, ?, '@concierge', 'agent', ?, ?)", this.mid, t.room_id, `The owner reviewed the request: ${status.toLowerCase()}.`, iso());
+      if (t && t.status !== "resolved") this.msg(t.room_id, "@concierge", "agent", `The owner reviewed the request: ${status.toLowerCase()}.`);
     }
     this.decision("@staff/you", `${a.code}: ${status}`, "Decided at the monitoring table");
     this.event("you", `decided ${a.code} for ${a.name}: ${status.toLowerCase()}`, "staff");

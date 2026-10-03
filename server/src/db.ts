@@ -226,6 +226,9 @@ addColumn("merchants", "theme", "TEXT");              // room palette (JSON), de
 addColumn("merchants", "import_notes", "TEXT");       // how the import was gathered (JSON: sources, method)
 addColumn("products", "image_url", "TEXT");
 addColumn("merchants", "billboard_mode", "TEXT NOT NULL DEFAULT 'artwork'"); // artwork | text | off
+addColumn("rooms", "band_chat_id", "TEXT");          // the Band chat room this room is mirrored to
+addColumn("messages", "band_message_id", "TEXT");
+addColumn("messages", "band_status", "TEXT");         // sent | failed | null (Band off)
 addColumn("promos", "image_status", "TEXT");          // null | designing | ready | failed
 addColumn("promos", "image_path", "TEXT");            // file under data/ads/ (artwork from the ZooWork designer skill)
 addColumn("promos", "image_note", "TEXT");            // why the artwork failed, or the agent's note

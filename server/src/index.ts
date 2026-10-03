@@ -12,6 +12,7 @@ import { send, subscribe, unsubscribe } from "./bus.ts";
 import { zooworkLive, zooworkRoleLive } from "./zoowork.ts";
 import * as Q from "./queries.ts";
 import { consoleRouter } from "./console.ts";
+import { bandLive, bandRoomInfo, bandStatus } from "./band.ts";
 import { missionRouter } from "./mission.ts";
 
 seedIfEmpty();
@@ -51,7 +52,7 @@ const oneOf = <T extends string>(v: unknown, opts: readonly T[], name: string) =
 };
 
 const api = express.Router();
-api.get("/health", (_req, res) => { res.json({ ok: true, zoowork: zooworkLive(), zooworkRoles: (process.env.ZOOWORK_AGENTS || "promo,concierge").split(","), tavily: tavilyConfigured(), claude: !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN) }); });
+api.get("/health", (_req, res) => { res.json({ ok: true, band: bandLive(), zoowork: zooworkLive(), zooworkRoles: (process.env.ZOOWORK_AGENTS || "promo,concierge").split(","), tavily: tavilyConfigured(), claude: !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN) }); });
 
 // ---- import a shop from a storefront link (Tavily gathers, Claude or rules structure, nothing saved until confirmed)
 api.post("/import/preview", async (req, res) => { res.json(await previewImport(text(req.body?.url, "url", 2000))); });
@@ -110,6 +111,24 @@ api.get("/merchants/:mid/customers", (req, res) => { res.json(Q.customers(mid(re
 api.get("/merchants/:mid/products", (req, res) => { res.json(Q.productsWithRisk(mid(req))); });
 api.get("/merchants/:mid/transactions", (req, res) => { res.json(Q.transactions(mid(req), typeof req.query.sku === "string" ? req.query.sku : undefined)); });
 api.get("/merchants/:mid/rooms", (req, res) => { res.json(Q.rooms(mid(req))); });
+api.get("/band/status", async (_req, res) => { res.json(await bandStatus()); });
+api.get("/merchants/:mid/rooms/:rid", (req, res) => {
+  const id = mid(req), rid = num(req.params.rid, "room");
+  const room = Q.rooms(id).find(r => r.id === rid) ?? get("SELECT * FROM rooms WHERE id = ? AND merchant_id = ?", rid, id);
+  if (!room) throw new HttpError(404, "room not found");
+  const typing = [...engine(id).typingRooms].filter(k => k.startsWith(`${rid}:`)).map(k => k.split(":")[1]);
+  res.json({ ...room, messages: Q.roomMessages(rid), band: { live: bandLive(), ...bandRoomInfo(rid) }, typing });
+});
+api.post("/merchants/:mid/rooms", (req, res) => {
+  const rid = engine(mid(req)).createTeamRoom(text(req.body?.topic, "topic", 100));
+  res.status(201).json({ id: rid });
+});
+api.post("/merchants/:mid/rooms/:rid/messages", (req, res) => {
+  const e = engine(mid(req)), rid = num(req.params.rid, "room"), body = text(req.body?.text, "text", 2000);
+  if (!get("SELECT 1 FROM rooms WHERE id = ? AND merchant_id = ?", rid, e.mid)) throw new HttpError(404, "room not found");
+  void e.ownerSays(rid, body).catch(err => console.warn(err));
+  res.status(202).json({ ok: true });
+});
 api.get("/merchants/:mid/approvals", (req, res) => { res.json(Q.approvals(mid(req))); });
 api.get("/merchants/:mid/decisions", (req, res) => { res.json(Q.decisions(mid(req))); });
 api.get("/merchants/:mid/events", (req, res) => { res.json(Q.events(mid(req), Math.min(500, Number(req.query.limit) || 80))); });

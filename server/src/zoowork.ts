@@ -107,6 +107,13 @@ async function converseIn(agentId: string, prompt: string, timeoutMs: number): P
   throw new Error("timed out waiting for the agent");
 }
 
+// Free-form reply from a shop's agent (team-room discussions). Null when that role isn't live on ZooWork.
+export async function discussLive(key: AgentKey, ctx: AgentCtx, prompt: string): Promise<string | null> {
+  if (!zooworkRoleLive(key)) return null;
+  try { return await converse(await ensureAgent(key, ctx), prompt); }
+  catch (e) { console.warn(`[zoowork] ${key} discussion failed: ${(e as Error).message}`); return null; }
+}
+
 // ---------------------------------------------------------------- shared (not per-shop) agents, e.g. the store importer
 const utilityIds = new Map<string, Promise<string>>();
 export async function askUtilityAgent(name: string, soulText: string, prompt: string, timeoutMs = 180_000): Promise<string> {
