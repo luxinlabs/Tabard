@@ -1,0 +1,13 @@
+{
+  "name": "tabard",
+  "private": true,
+  "description": "Tabard: the merchant's copilot for the age of shopping agents",
+  "scripts": {
+    "build": "elm make src/Main.elm --optimize --output=copilot.js",
+    "dev": "elm make src/Main.elm --output=copilot.js",
+    "start": "node server.js"
+  },
+  "devDependencies": {
+    "elm": "^0.19.1-6"
+  }
+}

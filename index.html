@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Intro: the two deck slides, then the shop -->
+<section id="intro">
+  <div class="slide" data-slide="0">
+    <h1>The Shopper Now Has an Agent</h1>
+    <p class="lede">In three weeks, agents went mainstream, and always-on.</p>
+    <div class="cols four">
+      <div class="col"><div class="date">Sep 8</div>Meta launches <b>Muse</b>, a personal agent that browses, compares and checks out for you.</div>
+      <div class="col"><div class="date">Sep 18</div>Muse is the <b>#1 free app</b> on the US App Store, ahead of ChatGPT.</div>
+      <div class="col hot"><div class="date">By Sep 22</div><b>Amazon blocks it.</b> The fight over who owns the shopper has begun.</div>
+      <div class="col"><div class="date">Sep 29</div>OpenAI launches <b>Dots</b>: always-on agents with their own cloud computers and 4,000+ apps.</div>
+    </div>
+    <p class="kicker">Shoppers now arrive as agents, around the clock. Most merchants have nothing to answer with.</p>
+    <p class="src">Sources: Meta Newsroom, GeekWire, CBS News, OpenAI, SiliconANGLE (Sept 2026)</p>
+  </div>
+  <div class="slide" data-slide="1" hidden>
+    <h1>The Merchant Needs One Too</h1>
+    <p class="lede">A merchant's agent earns its keep in one of three ways.</p>
+    <div class="cols three">
+      <div class="col"><span class="k">01. Revenue</span><h3>Sell more</h3>Get found, advise, price, promote and win customers back.<div class="build">In the shop: the billboard (promo engine)</div></div>
+      <div class="col"><span class="k">02. Efficiency</span><h3>Run leaner</h3>Service, catalog, content and replenishment: faster, with the same team.<div class="build">In the shop: the service counter (chat + calls)</div></div>
+      <div class="col"><span class="k">03. Risk</span><h3>Lose less</h3>Fraud, return abuse and policy checks, and bad bots posing as buyer agents.<div class="build">In the shop: the goods shelf and the gatekeeper</div></div>
+    </div>
+    <p class="kicker">Pick a real merchant. Pick one line of their P&amp;L. Move it.</p>
+  </div>
+  <div class="intro-nav">
+    <div class="dots"><i class="on"></i><i></i></div>
+    <button class="btn" id="skipIntro">Skip</button>
+    <button class="btn primary big" id="nextSlide">Next</button>
+  </div>
+</section>
+
+<!-- The shop -->
+<div id="game" hidden>
+  <header class="hud">
+    <div class="brand"><b>Tabard</b><span>Linden &amp; Oak · your agents answer the shopper's agents</span></div>
+    <span class="zw" id="zw"><i></i><span>ZooWork: checking…</span></span>
+    <div class="stats">
+      <button class="stat" data-open="monitor" id="s-rev"><small>Revenue today</small><b>$0</b></button>
+      <button class="stat" data-open="monitor" id="s-ord"><small>Orders</small><b>0</b></button>
+      <button class="stat" data-open="service" id="s-in"><small>In the shop</small><b>0</b></button>
+      <button class="stat" data-open="shelves" id="s-blk"><small>Bots blocked</small><b>0</b></button>
+      <button class="stat" data-open="monitor" id="s-app"><small>Needs you</small><b>0</b></button>
+    </div>
+  </header>
+
+  <div id="viewport">
+    <div id="stageBox">
+      <div id="stage" aria-label="Shop floor">
+        <div class="wall"></div>
+        <div class="shopname">Linden &amp; Oak<small>est. 2019</small></div>
+        <div class="rug"></div>
+        <div class="plant" style="left:14px;top:600px"></div>
+        <div class="plant" style="left:1140px;top:620px"></div>
+        <div class="plant" style="left:470px;top:110px;transform:scale(.8)"></div>
+
+        <div class="station" id="billboard" data-station="billboard" tabindex="0" role="button" aria-label="Billboard: open the promo engine">
+          <div class="glow"></div>
+          <div class="board"><div class="bulbs"></div>
+            <div class="eyebrow">Today at Linden &amp; Oak</div>
+            <h4 id="bbHead">10% off for returning customers</h4>
+            <p id="bbSub">Click to write a new offer with the promo engine</p>
+          </div>
+          <span class="tag"><kbd>1</kbd>Promo engine</span>
+        </div>
+
+        <div class="station" id="shelves" data-station="shelves" tabindex="0" role="button" aria-label="Goods shelf: check goods and fraud">
+          <div class="glow"></div>
+          <div class="unit" id="unit"></div>
+          <span class="tag"><kbd>2</kbd>Goods &amp; fraud check</span>
+        </div>
+
+        <div class="station" id="counter" data-station="service" tabindex="0" role="button" aria-label="Service counter: chats and calls">
+          <div class="glow"></div>
+          <div class="counter-top"></div>
+          <div class="phone" id="phone"></div>
+          <div class="bell"></div>
+          <div class="counter-front"><span>Customer service</span></div>
+          <span class="tag"><kbd>3</kbd>Customer service</span>
+        </div>
+
+        <div class="station" id="monitor" data-station="monitor" tabindex="0" role="button" aria-label="Monitoring table: open the dashboard">
+          <div class="glow"></div>
+          <div class="screens">
+            <div class="screen"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="screen text" id="miniScreen"></div>
+            <div class="screen"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="desk"></div>
+          <span class="tag"><kbd>4</kbd>Monitoring table</span>
+        </div>
+
+        <div class="gate" id="gate"><span>Gatekeeper</span></div>
+        <div class="door"></div>
+        <div id="ents"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="ticker">
+    <span class="label">Agent room feed</span>
+    <div class="items" id="ticker"></div>
+    <span class="helpbar">Click to walk · <kbd>WASD</kbd> move · <kbd>E</kbd> use · <kbd>1</kbd>–<kbd>4</kbd> jump</span>
+  </footer>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="sheet-h"><h2 id="modalTitle"></h2><span class="who" id="modalWho"></span><button class="x" id="modalClose" aria-label="Close">×</button></div>
+    <div class="sheet-b" id="modalBody"></div>
+  </div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+
+<script src="data.js"></script>
+<script src="zoowork.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

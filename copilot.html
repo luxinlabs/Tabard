@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tabard Merchant Copilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="copilot.css">
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+// <mermaid-diagram src="..."> renders a Mermaid chart. Elm only creates the element, so the SVG
+// the component adds never conflicts with Elm's virtual DOM. Re-renders when the color scheme changes.
+(function () {
+  const PALETTES = {
+    light: { surface: "#f4efe4", text: "#42392e", line: "#8a7f6d", border: "#7a6c52" },
+    dark:  { surface: "#262b34", text: "#f2f3f5", line: "#a8adb8", border: "#9aa4b8" },
+  };
+  const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  let seq = 0;
+
+  function configure() {
+    const pal = mq && mq.matches ? PALETTES.dark : PALETTES.light;
+    const bg = getComputedStyle(document.body).backgroundColor;
+    mermaid.initialize({
+      startOnLoad: false, securityLevel: "strict", theme: "base",
+      flowchart: { useMaxWidth: false }, sequence: { useMaxWidth: false },
+      themeVariables: {
+        background: bg, mainBkg: pal.surface, primaryColor: pal.surface, primaryTextColor: pal.text,
+        lineColor: pal.line, primaryBorderColor: pal.border, nodeBorder: pal.border, clusterBorder: pal.border,
+        edgeLabelBackground: bg, clusterBkg: "rgba(127,127,127,0.07)", titleColor: pal.text,
+        fontFamily: getComputedStyle(document.body).fontFamily, fontSize: "16px",
+      },
+    });
+  }
+
+  class MermaidDiagram extends HTMLElement {
+    connectedCallback() { this.render(); }
+    async render() {
+      const src = this.getAttribute("src") || "";
+      if (typeof mermaid === "undefined") { this.showSource(src); return; }
+      try {
+        const { svg } = await mermaid.render("mmd-" + seq++, src);
+        this.innerHTML = svg;
+      } catch (_) { this.showSource(src); }
+    }
+    showSource(src) {
+      const pre = document.createElement("pre");
+      pre.textContent = src;
+      this.replaceChildren(pre);
+    }
+  }
+
+  if (typeof mermaid !== "undefined") configure();
+  customElements.define("mermaid-diagram", MermaidDiagram);
+  if (mq && mq.addEventListener) mq.addEventListener("change", () => {
+    if (typeof mermaid === "undefined") return;
+    configure();
+    document.querySelectorAll("mermaid-diagram").forEach(d => d.render());
+  });
+})();
+</script>
+<script src="copilot.js"></script>
+<script>
+  let saved = "";
+  try { saved = localStorage.getItem("tabard-view") || ""; } catch (_) {}
+  // Tabard API base: ?api=<url> overrides the local default.
+  const api = new URLSearchParams(location.search).get("api") || "http://localhost:4000/api";
+  const app = Elm.Main.init({ node: document.getElementById("app"), flags: { saved, hash: location.hash, api } });
+  app.ports.saveView.subscribe(v => { try { localStorage.setItem("tabard-view", v); } catch (_) {} });
+
+  // Mission control live stream: Elm asks for a URL, JS keeps one EventSource open and forwards each event.
+  let stream = null;
+  app.ports.missionConnect.subscribe(url => {
+    if (stream) stream.close();
+    stream = new EventSource(url);
+    stream.onopen = () => app.ports.missionStatus.send("open");
+    stream.onerror = () => app.ports.missionStatus.send("error");
+    stream.onmessage = e => { try { app.ports.missionEvent.send(JSON.parse(e.data)); } catch (_) {} };
+  });
+</script>
+</body>
+</html>

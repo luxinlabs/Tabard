@@ -1,0 +1,24 @@
+{
+  "name": "tabard-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "dev:all": "concurrently -n api,web -c green,magenta \"npm run dev\" \"npm --prefix ../web run dev\"",
+    "start": "tsx src/index.ts",
+    "seed": "tsx src/seed.ts --reset",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "express": "^5.1.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
