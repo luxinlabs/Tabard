@@ -70,7 +70,9 @@
   let saved = "";
   try { saved = localStorage.getItem("tabard-view") || ""; } catch (_) {}
   // Tabard API base: ?api=<url> overrides the local default.
-  const api = new URLSearchParams(location.search).get("api") || "http://localhost:4000/api";
+  // Locally the API runs on :4000; when deployed (e.g. Vercel /console), it is on the same origin.
+  const local = location.protocol === "file:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+  const api = new URLSearchParams(location.search).get("api") || (local ? "http://localhost:4000/api" : location.origin + "/api");
   const app = Elm.Main.init({ node: document.getElementById("app"), flags: { saved, hash: location.hash, api } });
   app.ports.saveView.subscribe(v => { try { localStorage.setItem("tabard-view", v); } catch (_) {} });
 

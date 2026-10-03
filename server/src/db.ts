@@ -3,7 +3,8 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 
-const file = process.env.DB_FILE || path.join(import.meta.dirname, "..", "data", "tabard.db");
+// On Vercel the only writable disk is /tmp, which is per-instance and temporary (demo mode).
+const file = process.env.DB_FILE || (process.env.VERCEL ? "/tmp/tabard/tabard.db" : path.join(import.meta.dirname, "..", "data", "tabard.db"));
 fs.mkdirSync(path.dirname(file), { recursive: true });
 
 export const db = new DatabaseSync(file);

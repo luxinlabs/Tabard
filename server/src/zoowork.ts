@@ -54,6 +54,12 @@ async function ensureAgent(key: AgentKey, ctx: AgentCtx): Promise<string> {
   const id = existing || await (async () => {
     const k = `${ctx.merchant.id}:${key}`;
     if (!creating.has(k)) creating.set(k, (async () => {
+      // reuse this shop's agent if the project already has one (e.g. a fresh database on a new server)
+      const existing = (await zc().listAgents({ labels: { app: "tabard", merchant: String(ctx.merchant.id), role: key } })).data[0];
+      if (existing) {
+        run("UPDATE agents SET zoowork_agent_id = ? WHERE merchant_id = ? AND key = ?", existing.agent_id, ctx.merchant.id, key);
+        return existing.agent_id;
+      }
       const a = await zc().createAgent({ resource: {
         name: `tabard-${ctx.merchant.slug}-${key}`.slice(0, 60),
         model: { primary: MODEL },
@@ -61,7 +67,7 @@ async function ensureAgent(key: AgentKey, ctx: AgentCtx): Promise<string> {
         include_global_skills: false,
         ...(key === "promo" ? { skills: [{ skill_id: await designerSkillId() }] } : {}),
         labels: { app: "tabard", merchant: String(ctx.merchant.id), role: key },
-      } }, `tabard-${ctx.merchant.id}-${key}-v1`);
+      } });
       run("UPDATE agents SET zoowork_agent_id = ? WHERE merchant_id = ? AND key = ?", a.agent_id, ctx.merchant.id, key);
       console.log(`[zoowork] created ${key} agent ${a.agent_id} for ${ctx.merchant.name}`);
       return a.agent_id;
@@ -121,11 +127,16 @@ export async function askUtilityAgent(name: string, soulText: string, prompt: st
   if (!utilityIds.has(name)) utilityIds.set(name, (async () => {
     const saved = get("SELECT value FROM app_settings WHERE key = ?", settingKey)?.value as string | undefined;
     if (saved) return saved;
+    const existing = (await zc().listAgents({ labels: { app: "tabard", role: name } })).data.find(a => !(a.declared as any)?.labels?.merchant);
+    if (existing) {
+      run("INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)", settingKey, existing.agent_id);
+      return existing.agent_id;
+    }
     const a = await zc().createAgent({ resource: {
       name: `tabard-${name}`, model: { primary: MODEL },
       persona: { docs: [{ name: "SOUL.md", content: soulText }] },
       include_global_skills: false, labels: { app: "tabard", role: name },
-    } }, `tabard-${name}-v1`);
+    } });
     run("INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)", settingKey, a.agent_id);
     console.log(`[zoowork] created ${name} agent ${a.agent_id}`);
     return a.agent_id;

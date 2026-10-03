@@ -1,0 +1,10 @@
+# never upload secrets, local data or large local files
+server/.env
+server/data
+**/node_modules
+web/dist
+.vercel/output
+*.mov
+thumbnail.png
+Thumbnail.png
+elm-stuff
