@@ -1,22 +1,16 @@
 module Sponsors exposing (view)
 
 {-| The Sponsors page: which sponsors Tabard uses, how, and where to see each one in the app.
-Kept to what the code does; planned integrations are marked as planned.
+Lists only the sponsors the running app actually uses.
 -}
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
-type Status
-    = InBuild
-    | Planned
-
-
 type alias Sponsor =
     { name : String
     , role : String
-    , status : Status
     , summary : String
     , uses : List String
     , seeIt : String
@@ -28,7 +22,6 @@ sponsors : List Sponsor
 sponsors =
     [ { name = "ZooWork"
       , role = "Agent runtime"
-      , status = InBuild
       , summary = "Runs the merchant's agents as ZooWork managed agents on Claude Opus 5.5: one agent per store and role, created on first use with its role written into the agent's persona."
       , uses =
             [ "The promo engine and the concierge run on ZooWork by default; set ZOOWORK_AGENTS to move more roles over. Roles not on ZooWork fall back to built-in rules, and every message records which one answered (zoowork or sim)."
@@ -41,7 +34,6 @@ sponsors =
       }
     , { name = "Band"
       , role = "Agent-to-agent rooms"
-      , status = InBuild
       , summary = "Every Tabard room is a real Band chat room. Seven Band agents take part: concierge, stylist, promo, service, returns, gatekeeper, and a shopper agent that speaks for Muse and Dots buyers."
       , uses =
             [ "Each message is posted to Band as the agent who said it, with @mentions for whoever should act."
@@ -54,7 +46,6 @@ sponsors =
       }
     , { name = "Tavily"
       , role = "Web research"
-      , status = InBuild
       , summary = "Brings the outside web into the store when the answer isn't in the merchant's own data."
       , uses =
             [ "Import a shop from a link (TikTok Shop, Amazon, Shopify or any site): Tavily Extract reads the storefront page, and Tavily Search fills in what the page hides or blocks."
@@ -63,49 +54,16 @@ sponsors =
       , seeIt = "Mission control and the merchant list (imported shops); promo offers cite \"tavily · N prices\"."
       , code = [ "server/src/importer.ts", "TAVILY_API_KEY" ]
       }
-    , { name = "Moss"
-      , role = "Fast retrieval"
-      , status = Planned
-      , summary = "Planned as the sub-10 ms lookup layer over the catalog, policies and customer history, fast enough for live phone calls."
-      , uses =
-            [ "Today the agents' \"moss · …\" citations are simulated labels showing where Moss lookups would go."
-            , "Next: index catalog, policies and customer/{id}, and run a lookup on every chat and call turn."
-            ]
-      , seeIt = "System design → Phone calls and Getting real data."
-      , code = []
-      }
-    , { name = "Entire"
-      , role = "Agent provenance"
-      , status = Planned
-      , summary = "Planned for the development side: git checkpoints of the agent sessions behind each change to agent prompts, policies and code."
-      , uses =
-            [ "Today the decision log records an agent version on every decision (for example promo@a41c9e)."
-            , "Next: link those versions to Entire checkpoints, so \"why did the screener start refusing this?\" has an answer."
-            ]
-      , seeIt = "Merchant console → Decision log."
-      , code = []
-      }
     ]
 
 
 view : Html msg
 view =
-    let
-        live =
-            List.filter (\s -> s.status == InBuild) sponsors |> List.length
-    in
     div [ class "sponsor-page" ]
         [ div [ class "sponsor-intro" ]
             [ span [ class "eyebrow" ] [ text "Sponsors" ]
             , h2 [] [ text "Who powers Tabard, and how" ]
-            , p [ class "lede" ]
-                [ text
-                    (String.fromInt live
-                        ++ " sponsors are wired into the running app; "
-                        ++ String.fromInt (List.length sponsors - live)
-                        ++ " are planned. Live connection status is on the Agents & integrations tab."
-                    )
-                ]
+            , p [ class "lede" ] [ text "The sponsors wired into the running app, what each one does, and where to see it. Live connection status is on the Agents & integrations tab." ]
             ]
         , div [ class "sponsor-grid" ] (List.map card sponsors)
         , p [ class "note sponsor-foot" ]
@@ -116,15 +74,7 @@ view =
 card : Sponsor -> Html msg
 card s =
     article [ class "sp sponsor-card" ]
-        [ div [ class "sponsor-head" ]
-            [ span [ class "role" ] [ text s.role ]
-            , case s.status of
-                InBuild ->
-                    span [ class "pill p-good" ] [ text "In the build" ]
-
-                Planned ->
-                    span [ class "pill p-neutral" ] [ text "Planned" ]
-            ]
+        [ span [ class "role" ] [ text s.role ]
         , h3 [] [ text s.name ]
         , p [] [ text s.summary ]
         , span [ class "label" ] [ text "How we use it" ]

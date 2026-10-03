@@ -1,7 +1,7 @@
 // The shop floor for one merchant.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
-import { useHealth, useM, useShopStream, money, parseTheme, themeVars, PLATFORM_LABEL, type Agent, type Billboard, type Merchant, type Overview, type Product, type ShopEvent, type StreamMsg } from "../api";
+import { useHealth, useM, useShopStream, money, parseTheme, themeVars, type Agent, type Billboard, type Merchant, type Overview, type Product, type ShopEvent, type StreamMsg } from "../api";
 import { Floor, H, W, type StationName } from "../shop/floor";
 import { Modal } from "../ui";
 import { PromoPanel } from "../shop/PromoPanel";
@@ -9,6 +9,7 @@ import { ServicePanel } from "../shop/ServicePanel";
 import { GoodsPanel } from "../shop/GoodsPanel";
 import { DashboardPanel } from "../shop/DashboardPanel";
 import { AgentRoomsPanel } from "../shop/AgentRoomsPanel";
+import { Room } from "../shop/Room";
 
 type Toast = { id: number; text: string; open?: string; ticketId?: number };
 const TITLES: Record<StationName, [string, string]> = {
@@ -102,7 +103,6 @@ export default function Shop() {
   if (merchant.error) return <div className="page"><p>{(merchant.error as Error).message}</p><Link to="/merchants">Back to shops</Link></div>;
   const m = merchant.data, d = o.data;
   const flaggedSkus = new Set((products.data ?? []).filter(p => p.to_review > 0).map(p => p.sku));
-  const rows = products.data ? [products.data.slice(0, 3), products.data.slice(3, 6), products.data.slice(6, 9)] : [[], [], []];
   const counterBadge = (d?.openTickets ?? 0) + (ringing ? 1 : 0);
 
   return (
@@ -123,41 +123,10 @@ export default function Shop() {
       <div id="viewport" ref={viewport}>
         <div id="stageBox" style={{ width: W * scale, height: H * scale }}>
           <div id="stage" ref={stageRef} style={{ transform: `scale(${scale})`, ...themeVars(parseTheme(m?.theme)) } as React.CSSProperties} aria-label="Shop floor">
-            <div className="wall" />
-            <div className="shopname">{m?.name ?? ""}<small>{m?.city ?? ""}</small></div>
-            {m?.source_platform && <div className="platform-sign">From {PLATFORM_LABEL[m.source_platform] ?? "the web"}</div>}
-            {m?.source_platform && m.tagline && <div className="shoptag">{m.tagline}</div>}
-            <div className="rug" />
-            <Station id="rooms-station" name="rooms" near={near} label="Agent room" k="5" open={open}><span /></Station>
-            <div className="plant" style={{ left: 14, top: 600 }} />
-            <div className="plant" style={{ left: 1140, top: 620 }} />
-
-            <Station id="billboard" name="billboard" near={near} label="Promo engine" k="1" open={open}>
-              <div className={`board ${billboard.image ? "has-art" : ""}`}>{billboard.image
-                ? <img className="board-art" src={billboard.image} alt={billboard.headline} />
-                : <><div className="bulbs" /><div className="eyebrow">Today at {m?.name ?? "the shop"}</div><h4>{billboard.headline || m?.house_offer}</h4><p>{billboard.body}</p></>}</div>
-            </Station>
-            <Station id="shelves" name="shelves" near={near} label="Goods & fraud check" k="2" open={open} badge={d?.flagged}>
-              <div className="unit">{rows.map((r, i) => <div className="shelf" key={i}>{r.flatMap(p => Array.from({ length: Math.max(1, Math.min(4, Math.ceil(p.stock / 12))) }, (_, j) =>
-                <span key={p.sku + j} className={`item ${p.image_url && j === 0 ? "photo" : ""} ${j === 0 && flaggedSkus.has(p.sku) ? "flag" : ""}`} style={{ backgroundColor: p.swatch, backgroundImage: p.image_url && j === 0 ? `url("${p.image_url}")` : undefined, height: 26 + (j % 2) * 6 }} title={p.name} />))}</div>)}</div>
-            </Station>
-            <Station id="counter" name="service" near={near} label="Customer service" k="3" open={open} badge={counterBadge}>
-              <div className="counter-top" />
-              <div className={`phone ${ringing ? "ringing" : ""}`} onClick={e => { e.stopPropagation(); setServiceTab("phone"); setModal("service"); }} />
-              <div className="bell" />
-              <div className="counter-front"><span>Customer service</span></div>
-            </Station>
-            <Station id="monitor" name="monitor" near={near} label="Monitoring table" k="4" open={open} badge={d?.waiting}>
-              <div className="screens">
-                <div className="screen"><i /><i /><i /><i /><i /><i /></div>
-                <div className="screen text">{(agents.data ?? []).map(a => <div className="dotline" key={a.key}><b className={busy.includes(a.key) ? "r" : ""} />{a.handle}</div>)}</div>
-                <div className="screen"><i /><i /><i /><i /><i /></div>
-              </div>
-              <div className="desk" />
-            </Station>
-
-            <div className="gate"><span>Gatekeeper</span></div>
-            <div className="door" />
+            <Room m={m} theme={parseTheme(m?.theme)} products={products.data ?? []} flagged={flaggedSkus} billboard={billboard} ringing={ringing}
+              o={d} agents={agents.data ?? []} busy={busy} near={near}
+              badges={{ shelves: d?.flagged, service: counterBadge, monitor: d?.waiting }}
+              onPhone={() => { setServiceTab("phone"); setModal("service"); }} />
             <div id="ents" ref={layerRef} />
 
             {help && (
@@ -195,18 +164,6 @@ export default function Shop() {
       )}
 
       <div id="toasts" aria-live="polite">{toasts.map(t => <div className="toast" key={t.id} onClick={() => openFromToast(t)}>{t.text}</div>)}</div>
-    </div>
-  );
-}
-
-function Station({ id, name, near, label, k, open, badge, children }: { id: string; name: StationName; near: StationName | null; label: string; k: string; open: (s: StationName) => void; badge?: number; children: React.ReactNode }) {
-  return (
-    <div className={`station ${near === name ? "near" : ""}`} id={id} data-station={name} tabIndex={0} role="button" aria-label={label}
-      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(name); } }}>
-      <div className="glow" />
-      {children}
-      <span className="tag"><kbd>{k}</kbd>{label}</span>
-      {!!badge && <span className="badge">{badge}</span>}
     </div>
   );
 }

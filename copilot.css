@@ -189,7 +189,6 @@ mermaid-diagram pre{margin:0;font-family:var(--mono);font-size:12px;white-space:
 .sponsor-card h3{font-size:24px}
 .sponsor-card ul{display:flex;flex-direction:column;gap:4px}
 .sponsor-card .label{margin-top:6px}
-.sponsor-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .sponsor-foot{max-width:80ch}
 svg .label{font-size:inherit;letter-spacing:normal;text-transform:none;color:inherit;font-weight:inherit}
 

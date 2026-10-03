@@ -2,27 +2,11 @@
 // It owns the entity layer inside the stage and runs its own requestAnimationFrame loop outside React.
 import type { FloorVisitor, Spot } from "../api";
 
-export const W = 1200, H = 720;
+import { AGENT_POSTS, AGENT_SPOTS, STAND, iso, spots, walkable } from "./geometry";
+export { W, H } from "./geometry";
+
 export type StationName = "billboard" | "shelves" | "service" | "monitor" | "rooms";
-export const STATIONS: Record<StationName, { x: number; y: number }> = {
-  billboard: { x: 240, y: 222 },
-  shelves: { x: 905, y: 238 },
-  service: { x: 880, y: 560 },
-  monitor: { x: 250, y: 600 },
-  rooms: { x: 600, y: 470 },
-};
-// furniture you can't walk through (stage coordinates, at foot level)
-const BLOCKS = [[60, 400, 440, 548], [780, 395, 1160, 505], [0, 0, 1200, 190]];
-const blocked = (x: number, y: number) => BLOCKS.some(([l, t, r, b]) => x > l && x < r && y > t && y < b);
-const AGENT_POSTS: Record<string, [number, number, string, string]> = {
-  gatekeeper: [705, 668, "#B03A3C", "#F2C98B"],
-  concierge: [600, 380, "#2F4A3C", "#E0A1AB"],
-  promo: [455, 222, "#A45F6A", "#F2C98B"],
-  stylist: [700, 238, "#2F4A3C", "#F2C98B"],
-  returns: [1125, 240, "#9A6512", "#F6EAD3"],
-  service: [970, 392, "#2F4A3C", "#9CC7AE"],
-};
-const AGENT_SPOTS: Record<string, [number, number]> = { shelves: [905, 250] };
+export const STATIONS: Record<StationName, { x: number; y: number }> = STAND;
 
 const SKIN = ["#F1C9A5", "#D7A27A", "#A8714F", "#7A4E33", "#F5D7BE"];
 const HAIR = ["#2B2018", "#5A3A22", "#1B1B1B", "#8C5A2B", "#C9A15A"];
@@ -104,11 +88,12 @@ export class Floor {
     private layer: HTMLElement,
     private opts: { open: (s: StationName) => void; onNear: (s: StationName | null) => void; agentInfo: (key: string) => string; scale: () => number },
   ) {
-    for (const [k, [x, y, body, accent]] of Object.entries(AGENT_POSTS)) {
-      const e: Ent = new Ent(layer, x, y, robotSVG(body, accent), "@" + k, "agent", 110, () => e.say(opts.agentInfo(k), 3200));
+    for (const [k, [p, body, accent]] of Object.entries(AGENT_POSTS)) {
+      const e: Ent = new Ent(layer, p.x, p.y, robotSVG(body, accent), "@" + k, "agent", 110, () => e.say(opts.agentInfo(k), 3200));
       this.agents.set(k, e);
     }
-    this.me = new Ent(layer, 600, 560, personSVG("#A45F6A", "#F1C9A5", "#2B2018"), "You (owner)", "you", 260);
+    const start = iso(0.4, 0.72);
+    this.me = new Ent(layer, start.x, start.y, personSVG("#A45F6A", "#F1C9A5", "#2B2018"), "You (owner)", "you", 260);
     stage.addEventListener("click", this.onStageClick);
     window.addEventListener("keydown", this.onKeyDown);
     window.addEventListener("keyup", this.onKeyUp);
@@ -125,12 +110,8 @@ export class Floor {
 
   // ---------------------------------------------------------- server-driven
   private spotXY(s: Spot): [number, number] {
-    switch (s.to) {
-      case "gate": return [600 + rand(-15, 15), 652];
-      case "door": return [600 + rand(-20, 20), 765];
-      case "shelf": return [650 + (s.index ?? 0) * 42 + rand(-8, 8), 285 + rand(-15, 20)];
-      case "queue": { const i = s.index ?? 0; return [1000 - (i % 2) * 6, Math.min(545 + i * 40, 695)]; }
-    }
+    const p = s.to === "gate" ? spots.gate() : s.to === "door" ? spots.door() : s.to === "shelf" ? spots.shelf(s.index ?? 0) : spots.queue(s.index ?? 0);
+    return [p.x, p.y];
   }
   private who(id: string) { return id.startsWith("agent:") ? this.agents.get(id.slice(6)) : this.visitors.get(id); }
 
@@ -138,7 +119,8 @@ export class Floor {
     if (this.visitors.has(v.id)) return;
     const h = hash(v.handle);
     const svg = v.kind === "bot" ? robotSVG("#4A4A4A", "#FF5A5A", true) : personSVG(SHIRT[h % SHIRT.length], SKIN[h % SKIN.length], HAIR[(h >> 3) % HAIR.length]);
-    const [x, y] = atSpot ? this.spotXY(v.spot) : [600 + rand(-20, 20), 760];
+    const d = spots.door();
+    const [x, y] = atSpot ? this.spotXY(v.spot) : [d.x, d.y];
     this.visitors.set(v.id, new Ent(this.layer, x, y, svg, v.label, v.kind === "bot" ? "bot" : "", rand(95, 120)));
   }
   snapshot(visitors: FloorVisitor[]) {
@@ -155,8 +137,8 @@ export class Floor {
       case "alarm": { const g = this.stage.querySelector(".gate"); g?.classList.add("alarm"); window.setTimeout(() => g?.classList.remove("alarm"), 1300); return; }
       case "agent": {
         const a = this.agents.get(m.key); if (!a) return;
-        const [x, y] = m.to === "home" ? AGENT_POSTS[m.key] : AGENT_SPOTS[m.to] || AGENT_POSTS[m.key];
-        a.moveTo(x, y); return;
+        const p = m.to === "home" ? AGENT_POSTS[m.key][0] : AGENT_SPOTS[m.to] || AGENT_POSTS[m.key][0];
+        a.moveTo(p.x, p.y); return;
       }
     }
   }
@@ -182,8 +164,8 @@ export class Floor {
     const station = (e.target as HTMLElement).closest<HTMLElement>("[data-station]");
     if (station) return this.goTo(station.dataset.station as StationName);
     const r = this.stage.getBoundingClientRect(), s = this.opts.scale();
-    const x = Math.max(30, Math.min(1170, (e.clientX - r.left) / s)), y = Math.max(215, Math.min(700, (e.clientY - r.top) / s));
-    if (blocked(x, y)) return;
+    const x = (e.clientX - r.left) / s, y = (e.clientY - r.top) / s;
+    if (!walkable(x, y)) return;
     const t = document.createElement("div");
     t.className = "target"; t.style.left = x - 11 + "px"; t.style.top = y - 5 + "px";
     this.layer.appendChild(t); window.setTimeout(() => t.remove(), 800);
@@ -213,8 +195,10 @@ export class Floor {
       if (this.keys.has("w") || this.keys.has("arrowup")) vy--;
       if (this.keys.has("s") || this.keys.has("arrowdown")) vy++;
       const l = Math.hypot(vx, vy) || 1;
-      const nx = Math.max(30, Math.min(1170, me.x + (vx / l) * me.speed * dt)), ny = Math.max(215, Math.min(700, me.y + (vy / l) * me.speed * dt));
-      if (!blocked(nx, ny)) { me.x = nx; me.y = ny; }
+      const nx = me.x + (vx / l) * me.speed * dt, ny = me.y + (vy / l) * me.speed * dt;
+      if (walkable(nx, ny)) { me.x = nx; me.y = ny; }
+      else if (walkable(nx, me.y)) me.x = nx;
+      else if (walkable(me.x, ny)) me.y = ny;
       me.el.classList.add("walking"); me.place();
     } else if (!me.path) me.el.classList.remove("walking");
     if (me.step(dt) && this.arrive) { const a = this.arrive; this.arrive = null; a(); }
