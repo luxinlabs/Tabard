@@ -1,17 +1,23 @@
 // ZooWork agent client. Every merchant agent call goes through runAgent().
 //
-// Live: set ZOOWORK_API_URL (+ ZOOWORK_API_KEY). Each merchant's agents can point at their own ZooWork agent id
-// (agents.zoowork_agent_id, editable on the merchant profile page). Adjust toRequest/fromResponse to ZooWork's API.
-// Sim: without ZOOWORK_API_URL, the rule-based simulator below answers.
+// Live (ZOOWORK_API_KEY set, a zwp_ Project key): each merchant agent is a real ZooWork managed agent, created on first
+// use with its role in the persona (SOUL.md), started, and saved in agents.zoowork_agent_id. Paste an existing agent id
+// on the store profile page to use your own agent instead. Each call opens a ZooWork session, sends the prompt and
+// streams the reply.
+// ZOOWORK_AGENTS chooses which roles run live (default "promo,concierge"); the rest use the simulator below, so the
+// busy shop floor doesn't send a ZooWork request for every passing shopper. Set it to "all" to run every role live.
 //
-// Structured fields (price, risk score, approval needed) always come from the simulator's rules, so policy stays
-// deterministic. ZooWork supplies the wording when it's live.
+// Policy stays deterministic either way: prices, margins, risk scores and "needs approval" come from the rules here.
+// ZooWork chooses and writes; the rules check.
+import { createZooworkClient, isRunFinished, runOutcome, assistantText, type ZooworkClient } from "@zoowork-ai/sdk";
 import { FLAGS, riskOf, type AgentKey } from "./catalog.ts";
-import type { Row } from "./db.ts";
+import { run, type Row } from "./db.ts";
 
-const URL_ = process.env.ZOOWORK_API_URL;
 const KEY = process.env.ZOOWORK_API_KEY;
-export const zooworkLive = () => !!URL_;
+const MODEL = process.env.ZOOWORK_MODEL || "litellm/claude-opus-5-5";
+const LIVE_ROLES = new Set((process.env.ZOOWORK_AGENTS || "promo,concierge").split(",").map(s => s.trim()));
+export const zooworkLive = () => !!KEY;
+export const zooworkRoleLive = (key: string) => !!KEY && (LIVE_ROLES.has("all") || LIVE_ROLES.has(key));
 
 export type AgentResult = { text: string; data: any; cites: string[]; source: "zoowork" | "sim"; ms: number };
 export type AgentCtx = {
@@ -24,45 +30,148 @@ export type AgentCtx = {
   pendingApproval?: boolean; // the customer already has a refund waiting for the owner
 };
 
-function toRequest(agent: AgentKey, input: unknown, ctx: AgentCtx) {
-  return {
-    agent_id: ctx.agentRow?.zoowork_agent_id || agent,
-    input: typeof input === "string" ? input : JSON.stringify(input),
-    context: {
-      merchant: { name: ctx.merchant.name, category: ctx.merchant.category, policies: { discount_cap: ctx.merchant.discount_cap, refund_review_over: ctx.merchant.refund_review_over, risk_threshold: ctx.merchant.risk_threshold } },
-      customer: ctx.customer ? { name: ctx.customer.name, tier: ctx.customer.tier, risk: ctx.customer.risk, last_order: ctx.customer.last_order } : null,
-      promo: ctx.promo ? { headline: ctx.promo.headline } : null,
-    },
+// ---------------------------------------------------------------- ZooWork agents
+let client: ZooworkClient | null = null;
+const zc = () => (client ??= createZooworkClient({ apiKey: KEY }));
+const started = new Set<string>();
+const creating = new Map<string, Promise<string>>();
+
+function soul(key: AgentKey, m: Row) {
+  const shop = `${m.name}, a ${m.category} shop${m.city ? ` in ${m.city}` : ""}`;
+  const roles: Record<AgentKey, string> = {
+    promo: `You are the promo engine for ${shop}. You turn the owner's request into one billboard offer that buyer agents will see. Pick the product and discount that best match the request, and write a short, specific headline and body in the shop's voice. Keep discounts at or below ${m.discount_cap}% unless the owner asks for more; the shop's own rules check margin and approval afterwards.`,
+    concierge: `You are the concierge for ${shop}. You speak for the store and summarise the shift for the owner in plain language: what sold, what the agents handled, what needs the owner. Three or four sentences, no lists.`,
+    service: `You are the customer-service agent for ${shop}. You answer shoppers' agents about orders, sizing, delivery and returns. Refunds are allowed within 30 days unless an account has 3 or more returns in 60 days; then offer an exchange. Be brief and concrete.`,
+    returns: `You are the risk screener for ${shop}. You explain fraud signals on a transaction in one or two sentences and recommend an action.`,
+    stylist: `You are the stylist for ${shop}. You recommend in-stock items in one sentence.`,
+    gatekeeper: `You are the gatekeeper for ${shop}. You decide whether a visiting buyer agent may enter, in one sentence.`,
   };
+  return roles[key] + " Reply with exactly what is asked for, nothing else.";
 }
-function fromResponse(j: any): string | null {
-  return j?.output ?? j?.text ?? j?.message ?? j?.result ?? null;
+
+async function ensureAgent(key: AgentKey, ctx: AgentCtx): Promise<string> {
+  const existing = ctx.agentRow?.zoowork_agent_id as string | undefined;
+  const id = existing || await (async () => {
+    const k = `${ctx.merchant.id}:${key}`;
+    if (!creating.has(k)) creating.set(k, (async () => {
+      const a = await zc().createAgent({ resource: {
+        name: `tabard-${ctx.merchant.slug}-${key}`.slice(0, 60),
+        model: { primary: MODEL },
+        persona: { docs: [{ name: "SOUL.md", content: soul(key, ctx.merchant) }] },
+        include_global_skills: false,
+        labels: { app: "tabard", merchant: String(ctx.merchant.id), role: key },
+      } }, `tabard-${ctx.merchant.id}-${key}-v1`);
+      run("UPDATE agents SET zoowork_agent_id = ? WHERE merchant_id = ? AND key = ?", a.agent_id, ctx.merchant.id, key);
+      console.log(`[zoowork] created ${key} agent ${a.agent_id} for ${ctx.merchant.name}`);
+      return a.agent_id;
+    })().finally(() => creating.delete(k)));
+    return creating.get(k)!;
+  })();
+  if (!started.has(id)) {
+    await zc().startAgent(id);
+    await zc().waitUntilRunning(id);
+    started.add(id);
+  }
+  return id;
 }
+
+// One turn: a fresh session with the prompt, streamed until the run finishes. If the stream drops mid-run
+// (it can be closed by the gateway), read the session's durable history until the run is done.
+async function converse(agentId: string, prompt: string, timeoutMs = 90_000): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  const s = await zc().createSession(agentId, { initial_events: [{ type: "user.message", content: prompt } as never] });
+  const finish = (text: string, outcome: string | undefined) => {
+    if (outcome !== "succeeded") throw new Error(`run ${outcome}`);
+    if (!text.trim()) throw new Error("empty reply");
+    return text.trim();
+  };
+  let text = "";
+  try {
+    for await (const ev of zc().streamEvents(agentId, s.session_id, { signal: AbortSignal.timeout(timeoutMs) })) {
+      text += assistantText(ev);
+      if (isRunFinished(ev)) return finish(text, runOutcome(ev));
+    }
+  } catch (e) {
+    if ((e as Error).message.startsWith("run ") || (e as Error).message === "empty reply") throw e;
+  }
+  while (Date.now() < deadline) {
+    const events = await zc().listEvents(agentId, s.session_id, { limit: 500 });
+    const done = events.find(isRunFinished);
+    if (done) return finish(events.map(assistantText).join(""), runOutcome(done));
+    await sleep(1500);
+  }
+  throw new Error("timed out waiting for the agent");
+}
+
+const firstJson = (t: string) => { const m = t.match(/\{[\s\S]*\}/); try { return m ? JSON.parse(m[0]) : null; } catch { return null; } };
+
+// What each role is asked, and how its reply is checked against the shop's rules.
+const LIVE: Partial<Record<AgentKey, (input: any, ctx: AgentCtx, agentId: string) => Promise<Omit<SimOut, "cites"> & { cites?: string[] }>>> = {
+  async promo(prompt: string, ctx, id) {
+    const products = (ctx.products || []).map(p => ({ sku: p.sku, name: p.name, category: p.category, price: p.price, stock: p.stock }));
+    if (!products.length) return { text: "Add products to the catalog first, then I can write an offer.", data: null };
+    const reply = await converse(id, `The owner asks: "${prompt}"\n\nCatalog (JSON): ${JSON.stringify(products)}\n\n` +
+      `Reply with one JSON object only: {"sku": one sku from the catalog, "pct": discount percent as an integer, "segment": who the offer is for, ` +
+      `"ends": when it ends in plain words, "headline": under 60 characters, "body": one sentence under 140 characters, "note": one sentence on why this offer}`);
+    const j = firstJson(reply);
+    const product = j && (ctx.products || []).find(p => p.sku === j.sku);
+    const pct = j ? Math.round(Number(j.pct)) : NaN;
+    if (!product || !(pct >= 1 && pct <= 90) || typeof j.headline !== "string") throw new Error("promo reply didn't match the catalog: " + reply.slice(0, 200));
+    const offer = priceOffer(product, pct, ctx);
+    return {
+      text: `${String(j.note || "").trim()} ${offer.check}`.trim(),
+      data: { ...offer.data, headline: String(j.headline).slice(0, 80), body: String(j.body || "").slice(0, 200), segment: String(j.segment || "Returning customers").slice(0, 40), ends: String(j.ends || "Next Friday").slice(0, 40) },
+    };
+  },
+  async concierge(_input, ctx, id) {
+    const s = ctx.stats || {};
+    const top = ctx.products?.slice().sort((a, b) => b.sold - a.sold).slice(0, 3).map(p => `${p.name} (${p.sold} sold)`);
+    return { text: await converse(id, `Today's numbers for ${ctx.merchant.name}: ${JSON.stringify({ ...s, best_sellers: top })}. Summarise the shift for the owner.`), data: null };
+  },
+  async service(msg: string, ctx, id) {
+    const local = SIM.service(msg, ctx); // keeps handoff/approval decisions rule-based
+    const c = ctx.customer;
+    const text = await converse(id, `Shopper's agent says: "${msg}"\nCustomer: ${c ? JSON.stringify({ name: c.name, tier: c.tier, last_order: c.last_order, return_rate: c.return_rate }) : "unknown"}\n` +
+      `Store decision you must communicate: ${local.text}\nReply to the shopper's agent in two sentences or fewer.`);
+    return { text, data: local.data };
+  },
+  async returns(txn: Row, ctx, id) {
+    const local = SIM.returns(txn, ctx);
+    const text = await converse(id, `Transaction ${txn.code} (${txn.type}). Signals: ${local.data.why.join("; ") || "none"}. Risk score ${local.data.score}. Policy action: ${local.data.action}. Explain in one or two sentences.`);
+    return { text, data: local.data };
+  },
+};
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export async function runAgent(agent: AgentKey, input: any, ctx: AgentCtx): Promise<AgentResult> {
   const t0 = Date.now();
-  const local = SIM[agent](input, ctx);
-  if (URL_) {
+  if (zooworkRoleLive(agent) && LIVE[agent] && ctx.agentRow?.enabled !== 0) {
     try {
-      const r = await fetch(URL_, {
-        method: "POST",
-        headers: { "content-type": "application/json", ...(KEY ? { authorization: `Bearer ${KEY}` } : {}) },
-        body: JSON.stringify(toRequest(agent, input, ctx)),
-        signal: AbortSignal.timeout(20_000),
-      });
-      if (r.ok) {
-        const text = fromResponse(await r.json());
-        if (text) return { ...local, text, source: "zoowork", ms: Date.now() - t0 };
-      }
-      console.warn(`[zoowork] ${agent} returned ${r.status}, using simulator`);
+      const id = await ensureAgent(agent, ctx);
+      const out = await LIVE[agent]!(input, ctx, id);
+      return { cites: [`zoowork · ${MODEL.replace("litellm/", "")} · ${((Date.now() - t0) / 1000).toFixed(1)} s`], ...out, source: "zoowork", ms: Date.now() - t0 };
     } catch (e) {
-      console.warn(`[zoowork] ${agent} failed (${(e as Error).message}), using simulator`);
+      console.warn(`[zoowork] ${agent} failed (${(e as Error).message}); using the simulator for this call`);
     }
   }
+  const local = SIM[agent](input, ctx);
   await sleep(450 + Math.random() * 700);
   return { ...local, source: "sim", ms: Date.now() - t0 };
+}
+
+// Price, margin and the approval check for an offer. Shared by ZooWork and the simulator so the rules are identical.
+function priceOffer(product: Row, pct: number, ctx: AgentCtx) {
+  const price = Math.round(product.price * (1 - pct / 100));
+  const margin = Math.round(((price - product.cost) / price) * 100);
+  const cap = ctx.merchant.discount_cap;
+  const needsApproval = pct > cap;
+  const lift = Math.max(4, Math.round(pct * 0.9 + (product.stock > 25 ? 6 : 0)));
+  return {
+    data: { sku: product.sku, product: product.name, pct, price, list: product.price, margin, needsApproval, lift, competitor: Math.round(product.price * 0.97) },
+    check: `${product.name} at $${price} (list $${product.price}), ${margin}% margin. ` +
+      (needsApproval ? `${pct}% is above your ${cap}% rule, so this needs your approval.` : "Inside your margin rule."),
+  };
 }
 
 // ---------------------------------------------------------------- simulator

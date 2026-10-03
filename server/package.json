@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
+    "@zoowork-ai/sdk": "^0.10.2",
     "express": "^5.1.0",
     "zod": "^4.6.5"
   },

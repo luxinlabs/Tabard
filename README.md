@@ -39,9 +39,19 @@ On the landing page, choose **Or open a new shop → From a store link** and pas
 
 Set `TAVILY_API_KEY` (required for importing) and optionally `ANTHROPIC_API_KEY` before starting the server. Customers in an imported shop are sample shoppers, because storefronts don't expose real ones.
 
-### ZooWork
+### ZooWork agents
 
-Set `ZOOWORK_API_URL` (and `ZOOWORK_API_KEY`) before starting the server. Paste each agent's ZooWork id on the store profile page. Adjust `toRequest` / `fromResponse` in `server/src/zoowork.ts` to match ZooWork's API. Without those variables, the built-in simulator answers. Prices, risk scores and approvals always come from the merchant's policy rules; ZooWork supplies the wording.
+Tabard's merchant agents run on ZooWork managed agents through the official SDK (`@zoowork-ai/sdk`).
+
+1. Create a Project API key in the ZooWork app (Settings → API Keys). It starts with `zwp_live_`.
+2. Copy `server/.env.example` to `server/.env` and put the key in `ZOOWORK_API_KEY`. `server/.env` is ignored by git; never commit the key.
+3. Restart the server. The top bar shows "ZooWork agents: live".
+
+The first time a shop uses a role (for example the billboard's promo engine), the server creates a ZooWork agent named `tabard-<shop>-<role>`. The role's instructions go into the agent's persona (`SOUL.md`), and the agent runs on `ZOOWORK_MODEL` (default `litellm/claude-opus-5-5`). The server starts the agent and saves its id on the store profile page. To use an agent you built yourself in ZooWork, paste its id there instead. Each request opens a ZooWork session, sends the prompt and streams back the reply.
+
+`ZOOWORK_AGENTS` sets which roles run live (default `promo,concierge`, i.e. the billboard and the shift summary). Set it to `all` to also run service, returns, stylist and gatekeeper live. That sends a ZooWork request for every simulated shopper, so expect more usage. Roles that aren't live, and any call that fails, use the built-in simulator, and the UI labels each reply "ZooWork live" or "Simulated".
+
+ZooWork chooses the offer and writes the copy; the server's rules still compute price and margin and decide when the owner must approve (discounts above the shop's cap).
 
 ### Stations
 

@@ -1,3 +1,4 @@
+import "./env.ts"; // must stay first: loads server/.env
 // Tabard API. REST for data, Server-Sent Events for the live shop floor.
 import express, { type NextFunction, type Request, type Response } from "express";
 import fs from "node:fs";
@@ -50,7 +51,7 @@ const oneOf = <T extends string>(v: unknown, opts: readonly T[], name: string) =
 };
 
 const api = express.Router();
-api.get("/health", (_req, res) => { res.json({ ok: true, zoowork: zooworkLive(), tavily: tavilyConfigured(), claude: !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN) }); });
+api.get("/health", (_req, res) => { res.json({ ok: true, zoowork: zooworkLive(), zooworkRoles: (process.env.ZOOWORK_AGENTS || "promo,concierge").split(","), tavily: tavilyConfigured(), claude: !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN) }); });
 
 // ---- import a shop from a storefront link (Tavily gathers, Claude or rules structure, nothing saved until confirmed)
 api.post("/import/preview", async (req, res) => { res.json(await previewImport(text(req.body?.url, "url", 2000))); });
