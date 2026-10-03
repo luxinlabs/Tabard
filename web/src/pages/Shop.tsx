@@ -1,7 +1,7 @@
 // The shop floor for one merchant.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
-import { useHealth, useM, useShopStream, money, parseTheme, themeVars, PLATFORM_LABEL, type Agent, type Merchant, type Overview, type Product, type ShopEvent, type StreamMsg } from "../api";
+import { useHealth, useM, useShopStream, money, parseTheme, themeVars, PLATFORM_LABEL, type Agent, type Billboard, type Merchant, type Overview, type Product, type ShopEvent, type StreamMsg } from "../api";
 import { Floor, H, W, type StationName } from "../shop/floor";
 import { Modal } from "../ui";
 import { PromoPanel } from "../shop/PromoPanel";
@@ -35,7 +35,7 @@ export default function Shop() {
   const [modal, setModal] = useState<StationName | null>(null);
   const [serviceTab, setServiceTab] = useState<"chat" | "phone">("chat");
   const [ticketId, setTicketId] = useState<number | null>(null);
-  const [billboard, setBillboard] = useState({ headline: "", body: "" });
+  const [billboard, setBillboard] = useState<Billboard>({ headline: "", body: "" });
   const [ringing, setRinging] = useState(false);
   const [busy, setBusy] = useState<string[]>([]);
   const [ticker, setTicker] = useState<ShopEvent[]>([]);
@@ -79,7 +79,7 @@ export default function Shop() {
     switch (m.type) {
       case "snapshot": f?.snapshot(m.visitors); setBillboard(m.billboard); setRinging(m.ringing); setBusy(m.busy); break;
       case "floor":
-        if (m.op === "billboard") setBillboard({ headline: String(m.headline), body: String(m.body) });
+        if (m.op === "billboard") setBillboard(m as unknown as Billboard);
         else if (m.op === "phone") setRinging(!!m.ringing);
         else f?.handle(m.op, m);
         break;
@@ -129,7 +129,9 @@ export default function Shop() {
             <div className="plant" style={{ left: 1140, top: 620 }} />
 
             <Station id="billboard" name="billboard" near={near} label="Promo engine" k="1" open={open}>
-              <div className="board"><div className="bulbs" /><div className="eyebrow">Today at {m?.name ?? "the shop"}</div><h4>{billboard.headline || m?.house_offer}</h4><p>{billboard.body}</p></div>
+              <div className={`board ${billboard.image ? "has-art" : ""}`}>{billboard.image
+                ? <img className="board-art" src={billboard.image} alt={billboard.headline} />
+                : <><div className="bulbs" /><div className="eyebrow">Today at {m?.name ?? "the shop"}</div><h4>{billboard.headline || m?.house_offer}</h4><p>{billboard.body}</p></>}</div>
             </Station>
             <Station id="shelves" name="shelves" near={near} label="Goods & fraud check" k="2" open={open} badge={d?.flagged}>
               <div className="unit">{rows.map((r, i) => <div className="shelf" key={i}>{r.flatMap(p => Array.from({ length: Math.max(1, Math.min(4, Math.ceil(p.stock / 12))) }, (_, j) =>

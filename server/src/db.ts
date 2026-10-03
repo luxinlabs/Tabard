@@ -222,6 +222,9 @@ addColumn("merchants", "source_platform", "TEXT");    // tiktok | amazon | shopi
 addColumn("merchants", "theme", "TEXT");              // room palette (JSON), designed from the storefront
 addColumn("merchants", "import_notes", "TEXT");       // how the import was gathered (JSON: sources, method)
 addColumn("products", "image_url", "TEXT");
+addColumn("promos", "image_status", "TEXT");          // null | designing | ready | failed
+addColumn("promos", "image_path", "TEXT");            // file under data/ads/ (artwork from the ZooWork designer skill)
+addColumn("promos", "image_note", "TEXT");            // why the artwork failed, or the agent's note
 addColumn("products", "product_url", "TEXT");
 
 type P = SQLInputValue;
@@ -230,6 +233,7 @@ export const all = <T = Row>(sql: string, ...p: P[]) => db.prepare(sql).all(...p
 export const get = <T = Row>(sql: string, ...p: P[]) => db.prepare(sql).get(...p) as T | undefined;
 export const run = (sql: string, ...p: P[]) => db.prepare(sql).run(...p);
 export const insert = (sql: string, ...p: P[]) => Number(db.prepare(sql).run(...p).lastInsertRowid);
+export const DATA_DIR = path.dirname(file);
 export const iso = (d = new Date()) => d.toISOString();
 export const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString(); };
 export const parse = <T>(s: string | null | undefined, fallback: T): T => { try { return s ? JSON.parse(s) : fallback; } catch { return fallback; } };

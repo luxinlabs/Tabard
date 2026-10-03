@@ -39,16 +39,18 @@ export type Message = { id: number; sender: string; role: "buyer" | "agent" | "s
 export type CallLine = { who: "agent" | "caller" | "staff"; text: string; cites?: string[]; source?: string };
 export type Call = { id: number; customer_id: number; customer_name: string; phone: string; topic: string; status: "ringing" | "live" | "ended"; staff: boolean; handled_by: string | null; lines: CallLine[]; started_at: string; ended_at: string | null };
 export type Approval = { id: number; code: string; customer_name: string; order_code: string; amount: number; risk: number; recommendation: string; reasons: string[]; status: string; ticket_id: number | null };
-export type Promo = { id: number; prompt: string; headline: string; body: string; sku: string; product: string; pct: number; price: number; list: number; margin: number; competitor: number; segment: string; ends: string; lift: number; needs_approval: boolean; agent_text: string; cites: string[]; source: string; status: string; seen: number };
+export type Promo = { id: number; prompt: string; headline: string; body: string; sku: string; product: string; pct: number; price: number; list: number; margin: number; competitor: number; segment: string; ends: string; lift: number; needs_approval: boolean; agent_text: string; cites: string[]; source: string; status: string; seen: number;
+  image_status: "designing" | "ready" | "failed" | null; image_url: string | null; image_note: string | null; created_at: string; published_at: string | null };
 export type Decision = { id: number; agent: string; decision: string; basis: string; version: string; created_at: string };
 export type ShopEvent = { id: number; actor: string; text: string; kind: string; created_at: string };
 export type Customer = { id: number; name: string; tier: string; ltv: number; return_rate: number; risk: number; phone: string; city: string; last_order: string };
 export type AgentReply = { text: string; data: unknown; cites: string[]; source: "zoowork" | "sim"; ms: number };
 
 export type Spot = { to: "door" | "gate" | "shelf" | "queue"; index?: number };
+export type Billboard = { headline: string; body: string; image?: string | null; promoId?: number };
 export type FloorVisitor = { id: string; handle: string; platform: string; kind: "shop" | "service" | "bot"; label: string; spot: Spot };
 export type StreamMsg =
-  | { type: "snapshot"; live: boolean; visitors: FloorVisitor[]; busy: string[]; ringing: boolean; billboard: { headline: string; body: string } }
+  | { type: "snapshot"; live: boolean; visitors: FloorVisitor[]; busy: string[]; ringing: boolean; billboard: Billboard }
   | { type: "floor"; op: string; [k: string]: unknown }
   | { type: "changed"; keys: string[] }
   | { type: "event"; event: ShopEvent }

@@ -59,6 +59,7 @@ async function ensureAgent(key: AgentKey, ctx: AgentCtx): Promise<string> {
         model: { primary: MODEL },
         persona: { docs: [{ name: "SOUL.md", content: soul(key, ctx.merchant) }] },
         include_global_skills: false,
+        ...(key === "promo" ? { skills: [{ skill_id: await designerSkillId() }] } : {}),
         labels: { app: "tabard", merchant: String(ctx.merchant.id), role: key },
       } }, `tabard-${ctx.merchant.id}-${key}-v1`);
       run("UPDATE agents SET zoowork_agent_id = ? WHERE merchant_id = ? AND key = ?", a.agent_id, ctx.merchant.id, key);
@@ -78,12 +79,15 @@ async function ensureAgent(key: AgentKey, ctx: AgentCtx): Promise<string> {
 // One turn: a fresh session with the prompt, streamed until the run finishes. If the stream drops mid-run
 // (it can be closed by the gateway), read the session's durable history until the run is done.
 async function converse(agentId: string, prompt: string, timeoutMs = 90_000): Promise<string> {
+  return (await converseIn(agentId, prompt, timeoutMs)).text;
+}
+async function converseIn(agentId: string, prompt: string, timeoutMs: number): Promise<{ text: string; sessionId: string }> {
   const deadline = Date.now() + timeoutMs;
   const s = await zc().createSession(agentId, { initial_events: [{ type: "user.message", content: prompt } as never] });
   const finish = (text: string, outcome: string | undefined) => {
     if (outcome !== "succeeded") throw new Error(`run ${outcome}`);
     if (!text.trim()) throw new Error("empty reply");
-    return text.trim();
+    return { text: text.trim(), sessionId: s.session_id };
   };
   let text = "";
   try {
@@ -101,6 +105,41 @@ async function converse(agentId: string, prompt: string, timeoutMs = 90_000): Pr
     await sleep(1500);
   }
   throw new Error("timed out waiting for the agent");
+}
+
+// ---------------------------------------------------------------- billboard artwork (ZooWork "designer" skill)
+let designerId: Promise<string> | null = null;
+function designerSkillId() {
+  return (designerId ??= (async () => {
+    const page: any = await zc().listSkills();
+    const skill = (Array.isArray(page) ? page : page.data ?? []).find((x: any) => x.name === "designer");
+    if (!skill) { designerId = null; throw new Error("the ZooWork designer skill isn't available to this project"); }
+    return skill.skill_id as string;
+  })());
+}
+const withDesigner = new Set<string>();
+
+// Ask the promo agent to paint the billboard for an offer. Returns the PNG/JPEG bytes. Takes about two minutes.
+export async function designAd(ctx: AgentCtx, promo: Row): Promise<{ bytes: Buffer; ext: string; ms: number }> {
+  const t0 = Date.now();
+  const id = await ensureAgent("promo", ctx);
+  if (!withDesigner.has(id)) { await zc().putAgentSkill(id, await designerSkillId()); withDesigner.add(id); } // agents made before artwork existed
+  const m = ctx.merchant;
+  let palette = "";
+  try { const t = m.theme ? JSON.parse(m.theme) : null; if (t) palette = ` Brand colours: wall ${t.wall}, accent ${t.accent}, light ${t.floorA}.`; } catch { /* default palette */ }
+  const { sessionId } = await converseIn(id,
+    `Use the designer skill to create a wide billboard banner, 2400x840 pixels, for ${m.name} (${m.category}).${palette || " Brand colours: forest green #2F4A3C, rose #A45F6A, cream."}\n` +
+    `Headline: "${promo.headline}"\nLine under it: "${promo.body}"\nShow the product: ${promo.product}. Make the discount (${promo.pct}% off, now $${promo.price}) easy to read. ` +
+    `Keep all text inside the left 55% and leave the product on the right. Publish the final image as an artifact, then reply with only DONE.`, 6 * 60_000);
+  const arts = await zc().listArtifacts(id, { sessionId });
+  const art = arts.artifacts.filter(a => /^image\//.test(a.content_type || "") && a.status === "ready").pop();
+  if (!art) throw new Error("the designer finished without publishing an image");
+  const { url } = await zc().downloadArtifact(id, art.artifact_id);
+  if (!url) throw new Error("ZooWork returned no download link for the image");
+  const r = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+  if (!r.ok) throw new Error(`downloading the image failed (${r.status})`);
+  const ext = (art.content_type || "image/png").includes("jpeg") ? "jpg" : (art.content_type || "").includes("webp") ? "webp" : "png";
+  return { bytes: Buffer.from(await r.arrayBuffer()), ext, ms: Date.now() - t0 };
 }
 
 const firstJson = (t: string) => { const m = t.match(/\{[\s\S]*\}/); try { return m ? JSON.parse(m[0]) : null; } catch { return null; } };

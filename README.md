@@ -51,6 +51,8 @@ The first time a shop uses a role (for example the billboard's promo engine), th
 
 `ZOOWORK_AGENTS` sets which roles run live (default `promo,concierge`, i.e. the billboard and the shift summary). Set it to `all` to also run service, returns, stylist and gatekeeper live. That sends a ZooWork request for every simulated shopper, so expect more usage. Roles that aren't live, and any call that fails, use the built-in simulator, and the UI labels each reply "ZooWork live" or "Simulated".
 
+**Ad artwork.** Promo agents get ZooWork's `designer` skill. After the offer is drafted (about 7 s), the same agent paints a 2400×840 billboard image in the background (about 2–3 minutes). The server downloads the image to `server/data/ads/` and shows it in the draft, on the shop's billboard and on the offer's ad page (`/m/:shop/ads/:offer`). Until it's ready, or without ZooWork, the ad is laid out from the offer text and product.
+
 ZooWork chooses the offer and writes the copy; the server's rules still compute price and margin and decide when the owner must approve (discounts above the shop's cap).
 
 ### Stations

@@ -62,7 +62,10 @@ export const decisions = (mid: number, limit = 60) => all(`SELECT * FROM decisio
 export const events = (mid: number, limit = 80) => all(`SELECT * FROM events WHERE merchant_id = ? ORDER BY id DESC LIMIT ?`, mid, limit);
 export const agents = (mid: number, busy: Set<string>) => all(`SELECT * FROM agents WHERE merchant_id = ? ORDER BY id`, mid).map(a => ({ ...a, enabled: !!a.enabled, busy: busy.has(a.key) }));
 export const customers = (mid: number) => all(`SELECT * FROM customers WHERE merchant_id = ? ORDER BY ltv DESC`, mid);
-export const promos = (mid: number) => all(`SELECT * FROM promos WHERE merchant_id = ? ORDER BY id DESC LIMIT 20`, mid).map(p => ({ ...p, needs_approval: !!p.needs_approval, cites: parse(p.cites, []) }) as Row);
+export const promos = (mid: number) => all(`SELECT * FROM promos WHERE merchant_id = ? ORDER BY id DESC LIMIT 20`, mid).map(p => ({
+  ...p, needs_approval: !!p.needs_approval, cites: parse(p.cites, []),
+  image_url: p.image_status === "ready" && p.image_path ? `/api/merchants/${mid}/promos/${p.id}/image?v=${encodeURIComponent(p.image_path)}` : null,
+}) as Row);
 export const rooms = (mid: number) => all(`SELECT r.*, c.name AS customer_name FROM rooms r LEFT JOIN customers c ON c.id = r.customer_id
   WHERE r.merchant_id = ? ORDER BY r.id DESC LIMIT 50`, mid);
 

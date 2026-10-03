@@ -1,6 +1,8 @@
 // Billboard station: prompt the @promo agent, review the draft, publish it to the billboard.
 import { useState } from "react";
-import { useAction, useM, money, type Merchant, type Promo } from "../api";
+import { Link } from "react-router";
+import { useAction, useHealth, useM, money, type Merchant, type Product, type Promo } from "../api";
+import { AdCreative } from "./AdCreative";
 import { Cites, ErrorNote, Source, Thinking } from "../ui";
 
 const PRESETS: Record<string, string[]> = {
@@ -14,13 +16,20 @@ const PRESETS: Record<string, string[]> = {
 
 export function PromoPanel({ m, onPublished }: { m: Merchant; onPublished: (p: Promo) => void }) {
   const promos = useM<Promo[]>(m.id, ["promos"], "/promos");
+  const products = useM<Product[]>(m.id, ["products"], "/products");
+  const health = useHealth();
+  const artwork = useAction<number>(m.id, id => ({ path: `/promos/${id}/artwork` }));
   const [prompt, setPrompt] = useState(PRESETS.default[0]);
-  const [draft, setDraft] = useState<Promo | null>(null);
+  const [draftId, setDraftId] = useState<number | null>(null);
+  const [draftLocal, setDraft] = useState<Promo | null>(null);
+  // follow the stored row so artwork appears when the designer finishes
+  const draft = promos.data?.find(p => p.id === (draftId ?? draftLocal?.id)) ?? draftLocal;
+  const productOf = (p: Promo) => products.data?.find(x => x.sku === p.sku);
   const generate = useAction<string, Promo>(m.id, p => ({ path: "/promos", body: { prompt: p } }));
   const publish = useAction<number>(m.id, id => ({ path: `/promos/${id}/publish` }));
   const live = promos.data?.find(p => p.status === "live");
 
-  const run = () => generate.mutate(prompt.trim() || PRESETS.default[0], { onSuccess: setDraft });
+  const run = () => generate.mutate(prompt.trim() || PRESETS.default[0], { onSuccess: p => { setDraft(p); setDraftId(p.id); } });
 
   return (
     <div className="grid2">
@@ -35,23 +44,28 @@ export function PromoPanel({ m, onPublished }: { m: Merchant; onPublished: (p: P
         <div className="panel-h" style={{ borderTop: "1px solid var(--line)" }}><span className="label">On the billboard now</span></div>
         <div className="pad">
           {live
-            ? <><b>{live.headline}</b><div className="note">{live.body}</div><div className="note" style={{ marginTop: 6 }}>Buyer agents that received it: <b className="num">{live.seen}</b></div></>
+            ? <div className="liveoffer">{live.image_url && <img src={live.image_url} alt="" />}<div><b>{live.headline}</b><div className="note">{live.body}</div><div className="note" style={{ marginTop: 6 }}>Buyer agents that received it: <b className="num">{live.seen}</b> · <Link to={`/m/${m.id}/ads/${live.id}`}>Open ad page</Link></div></div></div>
             : <span className="note">The house offer: {m.house_offer}. Generate a new one to replace it.</span>}
         </div>
         {!!promos.data?.filter(p => p.status === "retired").length && <>
           <div className="panel-h" style={{ borderTop: "1px solid var(--line)" }}><span className="label">Past offers</span></div>
-          <ul className="feed">{promos.data.filter(p => p.status === "retired").slice(0, 5).map(p => <li key={p.id}><span className="t">{p.pct}%</span><span>{p.headline} <span className="note">· seen by {p.seen}</span></span></li>)}</ul>
+          <ul className="feed">{promos.data.filter(p => p.status === "retired").slice(0, 5).map(p => <li key={p.id}><span className="t">{p.pct}%</span><span><Link to={`/m/${m.id}/ads/${p.id}`}>{p.headline}</Link> <span className="note">· seen by {p.seen}</span></span></li>)}</ul>
         </>}
       </div>
 
       <div className="panel">
         <div className="panel-h"><span className="label">Draft</span>{draft && <Source source={draft.source} />}</div>
         <div className="pad">
-          <ErrorNote error={generate.error || publish.error} />
+          <ErrorNote error={generate.error || publish.error || artwork.error} />
           {generate.isPending ? <Thinking>@promo is drafting an offer…</Thinking>
             : !draft ? <div className="thinking" style={{ flexDirection: "column" }}><b style={{ fontFamily: "var(--display)", fontSize: 20, color: "var(--forest)" }}>Write a prompt, get a billboard.</b><span>The draft appears here.</span></div>
             : <>
-              <div className="adcard"><div className="label" style={{ color: "#E0A1AB" }}>Billboard preview</div><h3>{draft.headline}</h3><p>{draft.body}</p></div>
+              <AdCreative promo={draft} merchant={m} product={productOf(draft)} onRetry={() => artwork.mutate(draft.id)} />
+              <div className="adtools">
+                <Link to={`/m/${m.id}/ads/${draft.id}`}>Open the ad page</Link>
+                {draft.source === "zoowork" && draft.image_status !== "designing" && <button className="linkbtn" onClick={() => artwork.mutate(draft.id)}>{draft.image_status === "ready" ? "Paint a new version" : "Paint the artwork"}</button>}
+                {draft.source !== "zoowork" && <span className="note">{health.data?.zoowork ? "Simulated draft (ZooWork call failed), so no artwork." : "Artwork needs ZooWork (set ZOOWORK_API_KEY)."}</span>}
+              </div>
               <div className="facts">
                 <div><small>Price</small><b>{money(draft.price)}</b> <span className="note"><s>{money(draft.list)}</s></span></div>
                 <div><small>Margin after</small><b>{draft.margin}%</b></div>

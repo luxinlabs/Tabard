@@ -3,13 +3,13 @@ import "./env.ts"; // must stay first: loads server/.env
 import express, { type NextFunction, type Request, type Response } from "express";
 import fs from "node:fs";
 import path from "node:path";
-import { get, run } from "./db.ts";
+import { DATA_DIR, get, run } from "./db.ts";
 import { seedIfEmpty } from "./seed.ts";
 import { cleanMerchant, createFromImport, createMerchant, HttpError, listMerchants } from "./merchants.ts";
 import { previewImport, tavilyConfigured } from "./importer.ts";
 import { engine } from "./engine.ts";
 import { send, subscribe, unsubscribe } from "./bus.ts";
-import { zooworkLive } from "./zoowork.ts";
+import { zooworkLive, zooworkRoleLive } from "./zoowork.ts";
 import * as Q from "./queries.ts";
 import { consoleRouter } from "./console.ts";
 import { missionRouter } from "./mission.ts";
@@ -173,6 +173,24 @@ api.post("/merchants/:mid/approvals/:aid", (req, res) => {
 
 // ---- actions: promo engine
 api.post("/merchants/:mid/promos", async (req, res) => { res.status(201).json(await engine(mid(req)).generatePromo(text(req.body?.prompt, "prompt", 500))); });
+api.post("/merchants/:mid/promos/:pid/artwork", (req, res) => {
+  const e = engine(mid(req)), pid = num(req.params.pid, "promo");
+  if (!zooworkRoleLive("promo")) throw new HttpError(409, "Ad artwork needs the promo agent running on ZooWork. Set ZOOWORK_API_KEY on the server.");
+  if (!get("SELECT 1 FROM promos WHERE id = ? AND merchant_id = ?", pid, e.mid)) throw new HttpError(404, "promo not found");
+  void e.paintAd(pid).catch(err => console.warn(err));
+  res.status(202).json({ ok: true });
+});
+api.get("/merchants/:mid/promos/:pid", (req, res) => {
+  const p = Q.promos(mid(req)).find(x => x.id === num(req.params.pid, "promo"));
+  if (!p) throw new HttpError(404, "promo not found");
+  res.json(p);
+});
+api.get("/merchants/:mid/promos/:pid/image", (req, res) => {
+  const p = get("SELECT image_path FROM promos WHERE id = ? AND merchant_id = ?", num(req.params.pid, "promo"), mid(req));
+  if (!p?.image_path) throw new HttpError(404, "no artwork for this promo yet");
+  res.setHeader("cache-control", "public, max-age=31536000, immutable");
+  res.sendFile(path.join(DATA_DIR, "ads", path.basename(p.image_path)));
+});
 api.post("/merchants/:mid/promos/:pid/publish", (req, res) => { engine(mid(req)).publishPromo(num(req.params.pid, "promo")); res.json({ ok: true }); });
 
 // ---- concierge
