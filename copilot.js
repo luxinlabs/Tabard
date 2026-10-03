@@ -519,11 +519,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.bb.au === region.bo.au)
+	if (region.bf.az === region.bs.az)
 	{
-		return 'on line ' + region.bb.au;
+		return 'on line ' + region.bf.az;
 	}
-	return 'on lines ' + region.bb.au + ' through ' + region.bo.au;
+	return 'on lines ' + region.bf.az + ' through ' + region.bs.az;
 }
 
 
@@ -1857,9 +1857,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.cm,
-		impl.cG,
-		impl.cD,
+		impl.cq,
+		impl.cK,
+		impl.cH,
 		function() { return function() {} }
 	);
 });
@@ -2719,9 +2719,9 @@ var _VirtualDom_mapEventTuple = F2(function(func, tuple)
 var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
-		H: func(record.H),
-		bd: record.bd,
-		a9: record.a9
+		I: func(record.I),
+		bh: record.bh,
+		bd: record.bd
 	}
 });
 
@@ -2989,11 +2989,11 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 		// 3 = Custom
 
 		var value = result.a;
-		var message = !tag ? value : tag < 3 ? value.a : value.H;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.bd;
+		var message = !tag ? value : tag < 3 ? value.a : value.I;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.bh;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.a9) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.bd) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3943,11 +3943,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.cm,
-		impl.cG,
-		impl.cD,
+		impl.cq,
+		impl.cK,
+		impl.cH,
 		function(sendToApp, initialModel) {
-			var view = impl.j;
+			var view = impl.h;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3979,12 +3979,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.cm,
-		impl.cG,
-		impl.cD,
+		impl.cq,
+		impl.cK,
+		impl.cH,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.ba && impl.ba(sendToApp)
-			var view = impl.j;
+			var divertHrefToApp = impl.be && impl.be(sendToApp)
+			var view = impl.h;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -3992,12 +3992,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 			{
 				_VirtualDom_divertHrefToApp = divertHrefToApp;
 				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.aO);
+				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.aS);
 				var patches = _VirtualDom_diff(currNode, nextNode);
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.cF) && (_VirtualDom_doc.title = title = doc.cF);
+				(title !== doc.cJ) && (_VirtualDom_doc.title = title = doc.cJ);
 			});
 		}
 	);
@@ -4053,12 +4053,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.cq;
-	var onUrlRequest = impl.cr;
+	var onUrlChange = impl.cu;
+	var onUrlRequest = impl.cv;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		ba: function(sendToApp)
+		be: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4074,9 +4074,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.bM === next.bM
-							&& curr.bu === next.bu
-							&& curr.bH.a === next.bH.a
+							&& curr.bQ === next.bQ
+							&& curr.by === next.by
+							&& curr.bL.a === next.bL.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4084,13 +4084,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		cm: function(flags)
+		cq: function(flags)
 		{
-			return A3(impl.cm, flags, _Browser_getUrl(), key);
+			return A3(impl.cq, flags, _Browser_getUrl(), key);
 		},
-		j: impl.j,
-		cG: impl.cG,
-		cD: impl.cD
+		h: impl.h,
+		cK: impl.cK,
+		cH: impl.cH
 	});
 }
 
@@ -4156,17 +4156,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { ck: 'hidden', cb: 'visibilitychange' }
+		? { co: 'hidden', cf: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { ck: 'mozHidden', cb: 'mozvisibilitychange' }
+		? { co: 'mozHidden', cf: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { ck: 'msHidden', cb: 'msvisibilitychange' }
+		? { co: 'msHidden', cf: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { ck: 'webkitHidden', cb: 'webkitvisibilitychange' }
-		: { ck: 'hidden', cb: 'visibilitychange' };
+		? { co: 'webkitHidden', cf: 'webkitvisibilitychange' }
+		: { co: 'hidden', cf: 'visibilitychange' };
 }
 
 
@@ -4247,12 +4247,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		bT: _Browser_getScene(),
-		b_: {
-			b0: _Browser_window.pageXOffset,
-			b1: _Browser_window.pageYOffset,
-			b$: _Browser_doc.documentElement.clientWidth,
-			bt: _Browser_doc.documentElement.clientHeight
+		bX: _Browser_getScene(),
+		b2: {
+			b4: _Browser_window.pageXOffset,
+			b5: _Browser_window.pageYOffset,
+			b3: _Browser_doc.documentElement.clientWidth,
+			bx: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4262,8 +4262,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		b$: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		bt: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		b3: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		bx: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4286,15 +4286,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			bT: {
-				b$: node.scrollWidth,
-				bt: node.scrollHeight
+			bX: {
+				b3: node.scrollWidth,
+				bx: node.scrollHeight
 			},
-			b_: {
-				b0: node.scrollLeft,
-				b1: node.scrollTop,
-				b$: node.clientWidth,
-				bt: node.clientHeight
+			b2: {
+				b4: node.scrollLeft,
+				b5: node.scrollTop,
+				b3: node.clientWidth,
+				bx: node.clientHeight
 			}
 		};
 	});
@@ -4324,18 +4324,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			bT: _Browser_getScene(),
-			b_: {
-				b0: x,
-				b1: y,
-				b$: _Browser_doc.documentElement.clientWidth,
-				bt: _Browser_doc.documentElement.clientHeight
+			bX: _Browser_getScene(),
+			b2: {
+				b4: x,
+				b5: y,
+				b3: _Browser_doc.documentElement.clientWidth,
+				bx: _Browser_doc.documentElement.clientHeight
 			},
-			ci: {
-				b0: x + rect.left,
-				b1: y + rect.top,
-				b$: rect.width,
-				bt: rect.height
+			cm: {
+				b4: x + rect.left,
+				b5: y + rect.top,
+				b3: rect.width,
+				bx: rect.height
 			}
 		};
 	});
@@ -4426,25 +4426,25 @@ var _Http_toTask = F3(function(router, toTask, request)
 	return _Scheduler_binding(function(callback)
 	{
 		function done(response) {
-			callback(toTask(request.E.a(response)));
+			callback(toTask(request.F.a(response)));
 		}
 
 		var xhr = new XMLHttpRequest();
 		xhr.addEventListener('error', function() { done($elm$http$Http$NetworkError_); });
 		xhr.addEventListener('timeout', function() { done($elm$http$Http$Timeout_); });
-		xhr.addEventListener('load', function() { done(_Http_toResponse(request.E.b, xhr)); });
-		$elm$core$Maybe$isJust(request.bZ) && _Http_track(router, xhr, request.bZ.a);
+		xhr.addEventListener('load', function() { done(_Http_toResponse(request.F.b, xhr)); });
+		$elm$core$Maybe$isJust(request.b1) && _Http_track(router, xhr, request.b1.a);
 
 		try {
-			xhr.open(request.cp, request.L, true);
+			xhr.open(request.ct, request.M, true);
 		} catch (e) {
-			return done($elm$http$Http$BadUrl_(request.L));
+			return done($elm$http$Http$BadUrl_(request.M));
 		}
 
 		_Http_configureRequest(xhr, request);
 
-		request.aO.a && xhr.setRequestHeader('Content-Type', request.aO.a);
-		xhr.send(request.aO.b);
+		request.aS.a && xhr.setRequestHeader('Content-Type', request.aS.a);
+		xhr.send(request.aS.b);
 
 		return function() { xhr.c = true; xhr.abort(); };
 	});
@@ -4455,13 +4455,13 @@ var _Http_toTask = F3(function(router, toTask, request)
 
 function _Http_configureRequest(xhr, request)
 {
-	for (var headers = request.bs; headers.b; headers = headers.b) // WHILE_CONS
+	for (var headers = request.bw; headers.b; headers = headers.b) // WHILE_CONS
 	{
 		xhr.setRequestHeader(headers.a.a, headers.a.b);
 	}
-	xhr.timeout = request.cE.a || 0;
-	xhr.responseType = request.E.d;
-	xhr.withCredentials = request.b5;
+	xhr.timeout = request.cI.a || 0;
+	xhr.responseType = request.F.d;
+	xhr.withCredentials = request.b9;
 }
 
 
@@ -4482,10 +4482,10 @@ function _Http_toResponse(toBody, xhr)
 function _Http_toMetadata(xhr)
 {
 	return {
-		L: xhr.responseURL,
-		cB: xhr.status,
-		cC: xhr.statusText,
-		bs: _Http_parseHeaders(xhr.getAllResponseHeaders())
+		M: xhr.responseURL,
+		cF: xhr.status,
+		cG: xhr.statusText,
+		bw: _Http_parseHeaders(xhr.getAllResponseHeaders())
 	};
 }
 
@@ -4580,15 +4580,15 @@ function _Http_track(router, xhr, tracker)
 	xhr.upload.addEventListener('progress', function(event) {
 		if (xhr.c) { return; }
 		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Sending({
-			cz: event.loaded,
-			bV: event.total
+			cD: event.loaded,
+			bZ: event.total
 		}))));
 	});
 	xhr.addEventListener('progress', function(event) {
 		if (xhr.c) { return; }
 		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Receiving({
-			cw: event.loaded,
-			bV: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
+			cA: event.loaded,
+			bZ: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
 		}))));
 	});
 }
@@ -5133,7 +5133,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {bq: fragment, bu: host, bE: path, bH: port_, bM: protocol, bN: query};
+		return {bu: fragment, by: host, bI: path, bL: port_, bQ: protocol, bR: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -5419,7 +5419,7 @@ var $author$project$Main$AgentsMsg = function (a) {
 var $author$project$Main$AgentsView = 2;
 var $author$project$Main$Console = 0;
 var $author$project$Main$Conversation = 0;
-var $author$project$Main$DesignDoc = 3;
+var $author$project$Main$DesignDoc = 4;
 var $author$project$Main$GotZone = function (a) {
 	return {$: 1, a: a};
 };
@@ -5428,6 +5428,7 @@ var $author$project$Main$MissionMsg = function (a) {
 	return {$: 13, a: a};
 };
 var $author$project$Main$NoCall = {$: 0};
+var $author$project$Main$SponsorsView = 3;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$time$Time$Name = function (a) {
 	return {$: 0, a: a};
@@ -5447,7 +5448,7 @@ var $author$project$Agents$GotBand = function (a) {
 };
 var $author$project$Agents$BandAgent = F3(
 	function (role, handle, ok) {
-		return {v: handle, bC: ok, y: role};
+		return {v: handle, bG: ok, y: role};
 	});
 var $elm$json$Json$Decode$map3 = _Json_map3;
 var $elm$json$Json$Decode$bool = _Json_decodeBool;
@@ -6079,7 +6080,7 @@ var $elm$http$Http$resolve = F2(
 			case 3:
 				var metadata = response.a;
 				return $elm$core$Result$Err(
-					$elm$http$Http$BadStatus(metadata.cB));
+					$elm$http$Http$BadStatus(metadata.cF));
 			default:
 				var body = response.b;
 				return A2(
@@ -6107,7 +6108,7 @@ var $elm$http$Http$Request = function (a) {
 };
 var $elm$http$Http$State = F2(
 	function (reqs, subs) {
-		return {bP: reqs, bW: subs};
+		return {bT: reqs, b_: subs};
 	});
 var $elm$http$Http$init = $elm$core$Task$succeed(
 	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
@@ -6151,7 +6152,7 @@ var $elm$http$Http$updateReqs = F3(
 					return A2(
 						$elm$core$Task$andThen,
 						function (pid) {
-							var _v4 = req.bZ;
+							var _v4 = req.b1;
 							if (_v4.$ === 1) {
 								return A3($elm$http$Http$updateReqs, router, otherCmds, reqs);
 							} else {
@@ -6181,7 +6182,7 @@ var $elm$http$Http$onEffects = F4(
 				return $elm$core$Task$succeed(
 					A2($elm$http$Http$State, reqs, subs));
 			},
-			A3($elm$http$Http$updateReqs, router, cmds, state.bP));
+			A3($elm$http$Http$updateReqs, router, cmds, state.bT));
 	});
 var $elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
@@ -6224,7 +6225,7 @@ var $elm$http$Http$onSelfMsg = F3(
 				A2(
 					$elm$core$List$filterMap,
 					A3($elm$http$Http$maybeSend, router, tracker, progress),
-					state.bW)));
+					state.b_)));
 	});
 var $elm$http$Http$Cancel = function (a) {
 	return {$: 0, a: a};
@@ -6238,14 +6239,14 @@ var $elm$http$Http$cmdMap = F2(
 			var r = cmd.a;
 			return $elm$http$Http$Request(
 				{
-					b5: r.b5,
-					aO: r.aO,
-					E: A2(_Http_mapExpect, func, r.E),
-					bs: r.bs,
-					cp: r.cp,
-					cE: r.cE,
-					bZ: r.bZ,
-					L: r.L
+					b9: r.b9,
+					aS: r.aS,
+					F: A2(_Http_mapExpect, func, r.F),
+					bw: r.bw,
+					ct: r.ct,
+					cI: r.cI,
+					b1: r.b1,
+					M: r.M
 				});
 		}
 	});
@@ -6268,24 +6269,24 @@ var $elm$http$Http$subscription = _Platform_leaf('Http');
 var $elm$http$Http$request = function (r) {
 	return $elm$http$Http$command(
 		$elm$http$Http$Request(
-			{b5: false, aO: r.aO, E: r.E, bs: r.bs, cp: r.cp, cE: r.cE, bZ: r.bZ, L: r.L}));
+			{b9: false, aS: r.aS, F: r.F, bw: r.bw, ct: r.ct, cI: r.cI, b1: r.b1, M: r.M}));
 };
 var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
-		{aO: $elm$http$Http$emptyBody, E: r.E, bs: _List_Nil, cp: 'GET', cE: $elm$core$Maybe$Nothing, bZ: $elm$core$Maybe$Nothing, L: r.L});
+		{aS: $elm$http$Http$emptyBody, F: r.F, bw: _List_Nil, ct: 'GET', cI: $elm$core$Maybe$Nothing, b1: $elm$core$Maybe$Nothing, M: r.M});
 };
 var $elm$json$Json$Decode$list = _Json_decodeList;
 var $author$project$Agents$getBand = function (api) {
 	return $elm$http$Http$get(
 		{
-			E: A2(
+			F: A2(
 				$elm$http$Http$expectJson,
 				$author$project$Agents$GotBand,
 				A2(
 					$elm$json$Json$Decode$field,
 					'agents',
 					$elm$json$Json$Decode$list($author$project$Agents$bandAgentDecoder))),
-			L: api + '/band/status'
+			M: api + '/band/status'
 		});
 };
 var $author$project$Agents$GotHealth = function (a) {
@@ -6293,7 +6294,7 @@ var $author$project$Agents$GotHealth = function (a) {
 };
 var $author$project$Agents$Health = F4(
 	function (band, zoowork, zooworkRoles, tavily) {
-		return {a2: band, be: tavily, bg: zoowork, b3: zooworkRoles};
+		return {a6: band, bi: tavily, bk: zoowork, b7: zooworkRoles};
 	});
 var $elm$json$Json$Decode$map4 = _Json_map4;
 var $author$project$Agents$healthDecoder = A5(
@@ -6314,8 +6315,8 @@ var $author$project$Agents$healthDecoder = A5(
 var $author$project$Agents$getHealth = function (api) {
 	return $elm$http$Http$get(
 		{
-			E: A2($elm$http$Http$expectJson, $author$project$Agents$GotHealth, $author$project$Agents$healthDecoder),
-			L: api + '/health'
+			F: A2($elm$http$Http$expectJson, $author$project$Agents$GotHealth, $author$project$Agents$healthDecoder),
+			M: api + '/health'
 		});
 };
 var $author$project$Agents$GotMerchants = function (a) {
@@ -6323,7 +6324,7 @@ var $author$project$Agents$GotMerchants = function (a) {
 };
 var $author$project$Agents$MerchantRef = F3(
 	function (id, name, category) {
-		return {bj: category, b: id, bA: name};
+		return {bn: category, b: id, bE: name};
 	});
 var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $author$project$Agents$merchantDecoder = A4(
@@ -6340,16 +6341,16 @@ var $author$project$Agents$merchantDecoder = A4(
 var $author$project$Agents$getMerchants = function (api) {
 	return $elm$http$Http$get(
 		{
-			E: A2(
+			F: A2(
 				$elm$http$Http$expectJson,
 				$author$project$Agents$GotMerchants,
 				$elm$json$Json$Decode$list($author$project$Agents$merchantDecoder)),
-			L: api + '/merchants'
+			M: api + '/merchants'
 		});
 };
 var $author$project$Agents$init = function (api) {
 	return _Utils_Tuple2(
-		{u: api, aM: _List_Nil, k: '', l: 0, N: $elm$core$Maybe$Nothing, O: 'all', aQ: $elm$core$Maybe$Nothing, p: 1, ay: _List_Nil, T: _List_Nil, a: $elm$core$Maybe$Nothing, W: _List_Nil, J: $elm$core$Maybe$Nothing, X: ''},
+		{u: api, aQ: _List_Nil, k: '', l: 0, O: $elm$core$Maybe$Nothing, P: 'all', aU: $elm$core$Maybe$Nothing, p: 1, aD: _List_Nil, V: _List_Nil, a: $elm$core$Maybe$Nothing, Y: _List_Nil, K: $elm$core$Maybe$Nothing, aa: ''},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
@@ -6365,7 +6366,7 @@ var $author$project$Mission$GotSnapshot = function (a) {
 };
 var $author$project$Mission$Snapshot = F2(
 	function (totals, merchants) {
-		return {ay: merchants, i: totals};
+		return {aD: merchants, j: totals};
 	});
 var $author$project$Mission$Merchant = function (id) {
 	return function (name) {
@@ -6378,7 +6379,7 @@ var $author$project$Mission$Merchant = function (id) {
 								return function (ordersToday) {
 									return function (lastActivity) {
 										return function (agents) {
-											return {Z: agents, _: approvalsWaiting, ao: blockedToday, bj: category, b: id, bx: lastActivity, av: live, bA: name, aA: openRooms, ct: ordersToday, aD: revenueToday};
+											return {ad: agents, ae: approvalsWaiting, at: blockedToday, bn: category, b: id, bB: lastActivity, aA: live, bE: name, aF: openRooms, cx: ordersToday, aI: revenueToday};
 										};
 									};
 								};
@@ -6392,7 +6393,7 @@ var $author$project$Mission$Merchant = function (id) {
 };
 var $author$project$Mission$AgentInfo = F8(
 	function (key, handle, name, line, enabled, busy, zoowork, messagesLastHour) {
-		return {bi: busy, bn: enabled, v: handle, co: key, au: line, az: messagesLastHour, bA: name, bg: zoowork};
+		return {bm: busy, br: enabled, v: handle, cs: key, az: line, aE: messagesLastHour, bE: name, bk: zoowork};
 	});
 var $author$project$Mission$andMap = $elm$json$Json$Decode$map2($elm$core$Basics$apR);
 var $author$project$Mission$boolOr = F2(
@@ -6505,7 +6506,7 @@ var $author$project$Mission$merchantDecoder = A2(
 											$elm$json$Json$Decode$succeed($author$project$Mission$Merchant))))))))))));
 var $author$project$Mission$Totals = F7(
 	function (merchants, live, openRooms, messagesLastHour, approvalsWaiting, blockedToday, revenueToday) {
-		return {_: approvalsWaiting, ao: blockedToday, av: live, ay: merchants, az: messagesLastHour, aA: openRooms, aD: revenueToday};
+		return {ae: approvalsWaiting, at: blockedToday, aA: live, aD: merchants, aE: messagesLastHour, aF: openRooms, aI: revenueToday};
 	});
 var $elm$json$Json$Decode$map7 = _Json_map7;
 var $author$project$Mission$totalsDecoder = A8(
@@ -6529,8 +6530,8 @@ var $author$project$Mission$snapshotDecoder = A3(
 var $author$project$Mission$fetchSnapshot = function (api) {
 	return $elm$http$Http$get(
 		{
-			E: A2($elm$http$Http$expectJson, $author$project$Mission$GotSnapshot, $author$project$Mission$snapshotDecoder),
-			L: api + '/mission'
+			F: A2($elm$http$Http$expectJson, $author$project$Mission$GotSnapshot, $author$project$Mission$snapshotDecoder),
+			M: api + '/mission'
 		});
 };
 var $elm$core$Set$Set_elm_builtin = $elm$core$Basics$identity;
@@ -6681,7 +6682,7 @@ var $author$project$Mission$recipients = F3(
 		var mentioned = A2(
 			$elm$core$List$filter,
 			function (w) {
-				return (!_Utils_eq(w, p.br)) && (A2($elm$core$Set$member, w, ours) || _Utils_eq(w, room.v));
+				return (!_Utils_eq(w, p.bv)) && (A2($elm$core$Set$member, w, ours) || _Utils_eq(w, room.v));
 			},
 			A2(
 				$elm$core$List$map,
@@ -6701,7 +6702,7 @@ var $author$project$Mission$recipients = F3(
 					A2(
 						$elm$core$List$filter,
 						$elm$core$String$startsWith('@'),
-						$elm$core$String$words(p.al)))));
+						$elm$core$String$words(p.aq)))));
 		var _v0 = p.w;
 		switch (_v0) {
 			case 2:
@@ -6722,7 +6723,7 @@ var $author$project$Mission$sampleRole = function (p) {
 		case 2:
 			return 'sys';
 		default:
-			return A2($elm$core$String$startsWith, '@staff', p.br) ? 'staff' : 'agent';
+			return A2($elm$core$String$startsWith, '@staff', p.bv) ? 'staff' : 'agent';
 	}
 };
 var $author$project$Data$Agent = 0;
@@ -6732,7 +6733,7 @@ var $author$project$Data$Good = 0;
 var $author$project$Data$Sys = 2;
 var $author$project$Data$post = F3(
 	function (from, kind, text) {
-		return {a1: false, M: _List_Nil, br: from, w: kind, a7: $elm$core$Maybe$Nothing, al: text};
+		return {a5: false, N: _List_Nil, bv: from, w: kind, bb: $elm$core$Maybe$Nothing, aq: text};
 	});
 var $author$project$Data$Neutral = 3;
 var $author$project$Data$Warn = 1;
@@ -6740,29 +6741,29 @@ var $author$project$Data$withCites = F2(
 	function (c, m) {
 		return _Utils_update(
 			m,
-			{M: c});
+			{N: c});
 	});
 var $author$project$Data$withPayload = F2(
 	function (p, m) {
 		return _Utils_update(
 			m,
 			{
-				a7: $elm$core$Maybe$Just(p)
+				bb: $elm$core$Maybe$Just(p)
 			});
 	});
 var $author$project$Data$rooms = _List_fromArray(
 	[
 		{
-		ap: $elm$core$Maybe$Just('c1'),
+		au: $elm$core$Maybe$Just('c1'),
 		v: '@muse/priya.r',
 		b: 'r1',
-		as: 'Wool coat under $300, size M, by Friday',
-		au: 'Sell more',
-		ax: _List_fromArray(
-			['@muse/priya.r', '@concierge', '@stylist', '@promo']),
-		aB: '10:41',
-		a8: 'Muse',
+		ax: 'Wool coat under $300, size M, by Friday',
+		az: 'Sell more',
 		aC: _List_fromArray(
+			['@muse/priya.r', '@concierge', '@stylist', '@promo']),
+		aG: '10:41',
+		bc: 'Muse',
+		aH: _List_fromArray(
 			[
 				A3($author$project$Data$post, '@gatekeeper', 2, 'Verified @muse/priya.r. Band handle known, platform signature valid, 1 session today. Room opened.'),
 				A2(
@@ -6789,19 +6790,19 @@ var $author$project$Data$rooms = _List_fromArray(
 				'{ "type":"cart", "offer_id":"of_8812", "shipping":"express" }',
 				A3($author$project$Data$post, '@muse/priya.r', 1, 'Accepting offer of_8812. Express shipping to the address on file, please.'))
 			]),
-		aH: _Utils_Tuple2('Negotiating', 0)
+		aL: _Utils_Tuple2('Negotiating', 0)
 	},
 		{
-		ap: $elm$core$Maybe$Just('c2'),
+		au: $elm$core$Maybe$Just('c2'),
 		v: '@dots/agent-7f21',
 		b: 'r2',
-		as: 'Refund for Chelsea boots, \'wrong size\'',
-		au: 'Lose less',
-		ax: _List_fromArray(
-			['@dots/agent-7f21', '@concierge', '@returns']),
-		aB: '10:22',
-		a8: 'Dots',
+		ax: 'Refund for Chelsea boots, \'wrong size\'',
+		az: 'Lose less',
 		aC: _List_fromArray(
+			['@dots/agent-7f21', '@concierge', '@returns']),
+		aG: '10:22',
+		bc: 'Dots',
+		aH: _List_fromArray(
 			[
 				A3($author$project$Data$post, '@gatekeeper', 2, 'Verified @dots/agent-7f21. Valid Band handle. Customer risk score is 72, so @returns joined early.'),
 				A2(
@@ -6816,26 +6817,26 @@ var $author$project$Data$rooms = _List_fromArray(
 				function (m) {
 				return _Utils_update(
 					m,
-					{a1: true});
+					{a5: true});
 			}(
 				A2(
 					$author$project$Data$withPayload,
 					'{ "type":"approval_request", "case":"RF-2207", "amount":214.00, "risk":72, "recommend":"deny_refund_offer_exchange" }',
 					A3($author$project$Data$post, '@returns', 0, 'Risk 72. My recommendation: decline the refund and offer an exchange for a different size. This needs a person to approve.')))
 			]),
-		aH: _Utils_Tuple2('Needs approval', 1)
+		aL: _Utils_Tuple2('Needs approval', 1)
 	},
 		{
-		ap: $elm$core$Maybe$Nothing,
+		au: $elm$core$Maybe$Nothing,
 		v: '@shopbot-x9',
 		b: 'r3',
-		as: '40 × limited \'Field Runner\' sneaker',
-		au: 'Lose less',
-		ax: _List_fromArray(
-			['@shopbot-x9', '@gatekeeper']),
-		aB: '10:37',
-		a8: 'Unverified',
+		ax: '40 × limited \'Field Runner\' sneaker',
+		az: 'Lose less',
 		aC: _List_fromArray(
+			['@shopbot-x9', '@gatekeeper']),
+		aG: '10:37',
+		bc: 'Unverified',
+		aH: _List_fromArray(
 			[
 				A2(
 				$author$project$Data$withPayload,
@@ -6848,19 +6849,19 @@ var $author$project$Data$rooms = _List_fromArray(
 				A3($author$project$Data$post, '@gatekeeper', 2, 'Checks failed:\n• Claims Muse, but no platform signature\n• Handle created 3 hours ago\n• 212 requests in 10 minutes from 9 handles that share an operator\n• Tavily: operator domain appears in a sneaker-reseller bot forum')),
 				A3($author$project$Data$post, '@gatekeeper', 2, 'Blocked. The room is closed and the handle is on the deny list for 30 days. Nothing was reserved.')
 			]),
-		aH: _Utils_Tuple2('Blocked', 2)
+		aL: _Utils_Tuple2('Blocked', 2)
 	},
 		{
-		ap: $elm$core$Maybe$Just('c3'),
+		au: $elm$core$Maybe$Just('c3'),
 		v: '@dots/agent-02aa',
 		b: 'r4',
-		as: 'Where is order LO-55812?',
-		au: 'Run leaner',
-		ax: _List_fromArray(
-			['@dots/agent-02aa', '@concierge', '@service']),
-		aB: '10:45',
-		a8: 'Dots',
+		ax: 'Where is order LO-55812?',
+		az: 'Run leaner',
 		aC: _List_fromArray(
+			['@dots/agent-02aa', '@concierge', '@service']),
+		aG: '10:45',
+		bc: 'Dots',
+		aH: _List_fromArray(
 			[
 				A3($author$project$Data$post, '@gatekeeper', 2, 'Verified @dots/agent-02aa. Room opened.'),
 				A2(
@@ -6877,7 +6878,7 @@ var $author$project$Data$rooms = _List_fromArray(
 					A3($author$project$Data$post, '@service', 0, 'It\'s held at the carrier\'s Dallas hub. The current estimate is Oct 5, one day before her trip. I can send a replacement by overnight shipping today at no cost, and she can refuse the late parcel on arrival.'))),
 				A3($author$project$Data$post, '@dots/agent-02aa', 1, 'Dana wants to hear this from a person before she agrees. Can someone call her?')
 			]),
-		aH: _Utils_Tuple2('Service', 3)
+		aL: _Utils_Tuple2('Service', 3)
 	}
 	]);
 var $author$project$Mission$sampleRooms = _Utils_ap(
@@ -6893,70 +6894,70 @@ var $author$project$Mission$sampleRooms = _Utils_ap(
 			2,
 			'Kiln & Co',
 			{
-				ap: $elm$core$Maybe$Nothing,
+				au: $elm$core$Maybe$Nothing,
 				v: '@dots/agent-91c2',
 				b: 'k1',
-				as: 'Four speckled stoneware mugs, gift wrapped',
-				au: 'Sell more',
-				ax: _List_fromArray(
-					['@dots/agent-91c2', '@concierge', '@stylist', '@promo']),
-				aB: '10:49',
-				a8: 'Dots',
+				ax: 'Four speckled stoneware mugs, gift wrapped',
+				az: 'Sell more',
 				aC: _List_fromArray(
+					['@dots/agent-91c2', '@concierge', '@stylist', '@promo']),
+				aG: '10:49',
+				bc: 'Dots',
+				aH: _List_fromArray(
 					[
 						A3($author$project$Data$post, '@gatekeeper', 2, 'Verified @dots/agent-91c2. Room opened.'),
 						A3($author$project$Data$post, '@dots/agent-91c2', 1, 'Looking for a set of four speckled stoneware mugs as a wedding gift, under $120, gift wrapped.'),
 						A3($author$project$Data$post, '@concierge', 0, '@stylist, which mug sets do we have four of in the speckled glaze?'),
 						{
-						a1: false,
-						M: _List_fromArray(
+						a5: false,
+						N: _List_fromArray(
 							['moss · catalog · 5 ms']),
-						br: '@stylist',
+						bv: '@stylist',
 						w: 0,
-						a7: $elm$core$Maybe$Nothing,
-						al: 'The Oatmeal Speckle mug, 12 oz: 23 in stock, $28 each. It\'s the most-gifted item this month.'
+						bb: $elm$core$Maybe$Nothing,
+						aq: 'The Oatmeal Speckle mug, 12 oz: 23 in stock, $28 each. It\'s the most-gifted item this month.'
 					},
 						A3($author$project$Data$post, '@concierge', 0, '@promo, can we bundle four with gift wrap?'),
 						{
-						a1: false,
-						M: _List_fromArray(
+						a5: false,
+						N: _List_fromArray(
 							['tavily · competitor price · 760 ms']),
-						br: '@promo',
+						bv: '@promo',
 						w: 0,
-						a7: $elm$core$Maybe$Just('{ "type":"offer", "sku":"KC-MUG-OAT-x4", "price":104.00, "list":112.00 }'),
-						al: 'Set of four for $104, gift wrap included. That\'s inside the bundle margin rule.'
+						bb: $elm$core$Maybe$Just('{ "type":"offer", "sku":"KC-MUG-OAT-x4", "price":104.00, "list":112.00 }'),
+						aq: 'Set of four for $104, gift wrap included. That\'s inside the bundle margin rule.'
 					},
 						A3($author$project$Data$post, '@dots/agent-91c2', 1, 'Accepting. Please include a card that says \"For Sam and Jo\".')
 					]),
-				aH: _Utils_Tuple2('Negotiating', 0)
+				aL: _Utils_Tuple2('Negotiating', 0)
 			}),
 			_Utils_Tuple3(
 			2,
 			'Kiln & Co',
 			{
-				ap: $elm$core$Maybe$Nothing,
+				au: $elm$core$Maybe$Nothing,
 				v: '@mugflip-22',
 				b: 'k2',
-				as: '60 × limited ash-glaze plates',
-				au: 'Lose less',
-				ax: _List_fromArray(
-					['@mugflip-22', '@gatekeeper']),
-				aB: '10:52',
-				a8: 'Unverified',
+				ax: '60 × limited ash-glaze plates',
+				az: 'Lose less',
 				aC: _List_fromArray(
+					['@mugflip-22', '@gatekeeper']),
+				aG: '10:52',
+				bc: 'Unverified',
+				aH: _List_fromArray(
 					[
 						A3($author$project$Data$post, '@mugflip-22', 1, 'Buy 60 ash-glaze plates, the limited run. Ship to 15 addresses.'),
 						{
-						a1: false,
-						M: _List_fromArray(
+						a5: false,
+						N: _List_fromArray(
 							['tavily · operator lookup · 880 ms']),
-						br: '@gatekeeper',
+						bv: '@gatekeeper',
 						w: 2,
-						a7: $elm$core$Maybe$Nothing,
-						al: 'No platform signature. Handle 2 hours old. Tavily: operator resells limited ceramics. Blocked for 30 days.'
+						bb: $elm$core$Maybe$Nothing,
+						aq: 'No platform signature. Handle 2 hours old. Tavily: operator resells limited ceramics. Blocked for 30 days.'
 					}
 					]),
-				aH: _Utils_Tuple2('Blocked', 2)
+				aL: _Utils_Tuple2('Blocked', 2)
 			})
 		]));
 var $elm$core$List$sortBy = _List_sortBy;
@@ -6975,18 +6976,18 @@ var $author$project$Mission$sampleWire = function () {
 				F2(
 					function (i, p) {
 						return {
-							M: p.M,
-							br: p.br,
-							ar: $author$project$Mission$sampleRole(p),
+							N: p.N,
+							bv: p.bv,
+							aw: $author$project$Mission$sampleRole(p),
 							b: 0,
 							p: mname,
-							ag: mid,
-							a8: r.a8,
-							aE: r.b,
-							bS: r.au,
+							ak: mid,
+							bc: r.bc,
+							aJ: r.b,
+							bW: r.az,
 							z: $elm$core$Maybe$Just('sim'),
-							al: p.al,
-							bY: r.aB + (':' + A3(
+							aq: p.aq,
+							b0: r.aG + (':' + A3(
 								$elm$core$String$padLeft,
 								2,
 								'0',
@@ -6995,7 +6996,7 @@ var $author$project$Mission$sampleWire = function () {
 							g: A3($author$project$Mission$recipients, ours, r, p)
 						};
 					}),
-				r.aC);
+				r.aH);
 		},
 		$author$project$Mission$sampleRooms);
 	return $elm$core$List$reverse(
@@ -7010,44 +7011,44 @@ var $author$project$Mission$sampleWire = function () {
 			A2(
 				$elm$core$List$sortBy,
 				function ($) {
-					return $.bY;
+					return $.b0;
 				},
 				items)));
 }();
 var $author$project$Mission$sampleTotals = {
-	_: 1,
-	ao: 2,
-	av: 0,
-	ay: 2,
-	az: $elm$core$List$length($author$project$Mission$sampleWire),
-	aA: 6,
-	aD: 3412
+	ae: 1,
+	at: 2,
+	aA: 0,
+	aD: 2,
+	aE: $elm$core$List$length($author$project$Mission$sampleWire),
+	aF: 6,
+	aI: 3412
 };
 var $author$project$Mission$init = function (api) {
 	return _Utils_Tuple2(
 		{
 			u: api,
 			l: 0,
-			F: $elm$core$Maybe$Nothing,
-			G: $elm$core$Set$fromList(
+			G: $elm$core$Maybe$Nothing,
+			H: $elm$core$Set$fromList(
 				_List_fromArray(
 					['across', 'inside', 'staff'])),
 			q: $elm$core$Maybe$Nothing,
-			ay: $author$project$Mission$sampleMerchants,
-			R: false,
+			aD: $author$project$Mission$sampleMerchants,
+			T: false,
 			t: _List_Nil,
-			S: '',
-			aG: '',
-			aY: $elm$core$Maybe$Nothing,
-			J: $author$project$Mission$NoThread,
-			i: $author$project$Mission$sampleTotals,
-			h: $author$project$Mission$sampleWire
+			U: '',
+			aK: '',
+			a0: $elm$core$Maybe$Nothing,
+			K: $author$project$Mission$NoThread,
+			j: $author$project$Mission$sampleTotals,
+			i: $author$project$Mission$sampleWire
 		},
 		$author$project$Mission$fetchSnapshot(api));
 };
 var $author$project$Data$LogEntry = F5(
 	function (time, agent, decision, basis, version) {
-		return {b4: agent, b9: basis, bm: decision, bY: time, cH: version};
+		return {b8: agent, cd: basis, bq: decision, b0: time, cL: version};
 	});
 var $author$project$Data$log = _List_fromArray(
 	[
@@ -7060,7 +7061,7 @@ var $author$project$Data$log = _List_fromArray(
 var $elm$core$Platform$Cmd$map = _Platform_map;
 var $author$project$Data$Refund = F8(
 	function (id, cust, order, amt, risk, rec, why, decision) {
-		return {b7: amt, cf: cust, bm: decision, b: id, bD: order, cv: rec, ai: risk, cJ: why};
+		return {cb: amt, cj: cust, bq: decision, b: id, bH: order, cz: rec, am: risk, cN: why};
 	});
 var $author$project$Data$refunds = _List_fromArray(
 	[
@@ -7144,7 +7145,7 @@ var $author$project$Main$scrollToEnd = function (id) {
 };
 var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
 var $author$project$Main$init = function (flags) {
-	var startView = (A2($elm$core$String$startsWith, '#d-', flags.af) || ((flags.af === '#design') || (flags.aF === 'design'))) ? 3 : (((flags.af === '#mission') || (flags.aF === 'mission')) ? 1 : (((flags.af === '#agents') || (flags.aF === 'agents')) ? 2 : 0));
+	var startView = (A2($elm$core$String$startsWith, '#d-', flags.R) || ((flags.R === '#design') || (flags.an === 'design'))) ? 4 : (((flags.R === '#mission') || (flags.an === 'mission')) ? 1 : (((flags.R === '#agents') || (flags.an === 'agents')) ? 2 : (((flags.R === '#sponsors') || (flags.an === 'sponsors')) ? 3 : 0)));
 	var _v0 = $author$project$Mission$init(flags.u);
 	var mission = _v0.a;
 	var missionCmd = _v0.b;
@@ -7152,7 +7153,7 @@ var $author$project$Main$init = function (flags) {
 	var agents = _v1.a;
 	var agentsCmd = _v1.b;
 	return _Utils_Tuple2(
-		{Z: agents, o: $author$project$Main$NoCall, k: '', D: 'r1', aw: $author$project$Data$log, ah: mission, V: $author$project$Data$refunds, W: $author$project$Data$rooms, A: 0, j: startView, a0: $elm$time$Time$utc},
+		{ad: agents, o: $author$project$Main$NoCall, k: '', E: 'r1', aB: $author$project$Data$log, al: mission, X: $author$project$Data$refunds, Y: $author$project$Data$rooms, A: 0, h: startView, a4: $elm$time$Time$utc},
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
@@ -7170,7 +7171,7 @@ var $elm$time$Time$Every = F2(
 	});
 var $elm$time$Time$State = F2(
 	function (taggers, processes) {
-		return {bK: processes, bX: taggers};
+		return {bO: processes, b$: taggers};
 	});
 var $elm$time$Time$init = $elm$core$Task$succeed(
 	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
@@ -7306,7 +7307,7 @@ var $elm$time$Time$spawnHelp = F3(
 	});
 var $elm$time$Time$onEffects = F3(
 	function (router, subs, _v0) {
-		var processes = _v0.bK;
+		var processes = _v0.bO;
 		var rightStep = F3(
 			function (_v6, id, _v7) {
 				var spawns = _v7.a;
@@ -7375,7 +7376,7 @@ var $elm$time$Time$millisToPosix = $elm$core$Basics$identity;
 var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
 var $elm$time$Time$onSelfMsg = F3(
 	function (router, interval, state) {
-		var _v0 = A2($elm$core$Dict$get, interval, state.bX);
+		var _v0 = A2($elm$core$Dict$get, interval, state.b$);
 		if (_v0.$ === 1) {
 			return $elm$core$Task$succeed(state);
 		} else {
@@ -7517,11 +7518,11 @@ var $author$project$Main$subscriptions = function (model) {
 				A2(
 				$elm$core$Platform$Sub$map,
 				$author$project$Main$MissionMsg,
-				$author$project$Mission$subscriptions(model.ah)),
-				(model.j === 2) ? A2(
+				$author$project$Mission$subscriptions(model.al)),
+				(model.h === 2) ? A2(
 				$elm$core$Platform$Sub$map,
 				$author$project$Main$AgentsMsg,
-				$author$project$Agents$subscriptions(model.Z)) : $elm$core$Platform$Sub$none
+				$author$project$Agents$subscriptions(model.ad)) : $elm$core$Platform$Sub$none
 			]));
 };
 var $author$project$Main$Decided = F3(
@@ -7536,8 +7537,8 @@ var $author$project$Main$addPost = F2(
 		return _Utils_update(
 			r,
 			{
-				aC: _Utils_ap(
-					r.aC,
+				aH: _Utils_ap(
+					r.aH,
 					_List_fromArray(
 						[m]))
 			});
@@ -7563,8 +7564,8 @@ var $elm$time$Time$toAdjustedMinutesHelp = F3(
 			} else {
 				var era = eras.a;
 				var olderEras = eras.b;
-				if (_Utils_cmp(era.bb, posixMinutes) < 0) {
-					return posixMinutes + era.bB;
+				if (_Utils_cmp(era.bf, posixMinutes) < 0) {
+					return posixMinutes + era.bF;
 				} else {
 					var $temp$defaultOffset = defaultOffset,
 						$temp$posixMinutes = posixMinutes,
@@ -7624,7 +7625,7 @@ var $elm$core$Maybe$andThen = F2(
 	});
 var $author$project$Data$CallLine = F3(
 	function (who, text, cite) {
-		return {cd: cite, al: text, cI: who};
+		return {ch: cite, aq: text, cM: who};
 	});
 var $author$project$Data$callScript = function (customerId) {
 	switch (customerId) {
@@ -7689,9 +7690,9 @@ var $author$project$Main$currentRoom = function (model) {
 		A2(
 			$elm$core$List$filter,
 			function (r) {
-				return _Utils_eq(r.b, model.D);
+				return _Utils_eq(r.b, model.E);
 			},
-			model.W));
+			model.Y));
 };
 var $elm$core$Maybe$map = F2(
 	function (f, maybe) {
@@ -7722,7 +7723,7 @@ var $author$project$Main$currentScript = function (model) {
 			A2(
 				$elm$core$Maybe$andThen,
 				function ($) {
-					return $.ap;
+					return $.au;
 				},
 				$author$project$Main$currentRoom(model))));
 };
@@ -7733,12 +7734,12 @@ var $author$project$Main$updateRoom = F3(
 		return _Utils_update(
 			model,
 			{
-				W: A2(
+				Y: A2(
 					$elm$core$List$map,
 					function (r) {
 						return _Utils_eq(r.b, id) ? f(r) : r;
 					},
-					model.W)
+					model.Y)
 			});
 	});
 var $author$project$Main$endCall = function (model) {
@@ -7747,13 +7748,13 @@ var $author$project$Main$endCall = function (model) {
 		return _Utils_Tuple2(
 			A3(
 				$author$project$Main$updateRoom,
-				model.D,
+				model.E,
 				$author$project$Main$addPost(
 					function (m) {
 						return _Utils_update(
 							m,
 							{
-								M: _List_fromArray(
+								N: _List_fromArray(
 									['voice · 1 call · moss lookups 3'])
 							});
 					}(
@@ -7769,11 +7770,11 @@ var $author$project$Main$endCall = function (model) {
 var $elm$browser$Browser$Dom$focus = _Browser_call('focus');
 var $elm$core$Basics$ge = _Utils_ge;
 var $author$project$Main$joinStaff = function (r) {
-	return A2($elm$core$List$member, '@staff/you', r.ax) ? r : _Utils_update(
+	return A2($elm$core$List$member, '@staff/you', r.aC) ? r : _Utils_update(
 		r,
 		{
-			ax: _Utils_ap(
-				r.ax,
+			aC: _Utils_ap(
+				r.aC,
 				_List_fromArray(
 					['@staff/you']))
 		});
@@ -7803,7 +7804,7 @@ var $author$project$Agents$Promo = function (id) {
 									return function (imageUrl) {
 										return function (imageStatus) {
 											return function (seen) {
-												return {aO: body, aP: headline, b: id, bv: imageStatus, bw: imageUrl, by: list, bF: pct, bI: price, bL: product, bU: seen, z: source, bc: status};
+												return {aS: body, aT: headline, b: id, bz: imageStatus, bA: imageUrl, bC: list, bJ: pct, bM: price, bP: product, bY: seen, z: source, bg: status};
 											};
 										};
 									};
@@ -7865,11 +7866,11 @@ var $author$project$Agents$promoDecoder = A2(
 var $author$project$Agents$getPromos = function (model) {
 	return $elm$http$Http$get(
 		{
-			E: A2(
+			F: A2(
 				$elm$http$Http$expectJson,
 				$author$project$Agents$GotPromos,
 				$elm$json$Json$Decode$list($author$project$Agents$promoDecoder)),
-			L: A2($author$project$Agents$merchantUrl, model, '/promos')
+			M: A2($author$project$Agents$merchantUrl, model, '/promos')
 		});
 };
 var $author$project$Agents$GotRooms = function (a) {
@@ -7877,7 +7878,7 @@ var $author$project$Agents$GotRooms = function (a) {
 };
 var $author$project$Agents$RoomRow = F9(
 	function (id, kind, handle, intent, customerName, messageCount, bandSent, bandChatId, lastText) {
-		return {aa: bandChatId, ab: bandSent, aq: customerName, v: handle, b: id, as: intent, w: kind, at: lastText, aT: messageCount};
+		return {af: bandChatId, ag: bandSent, av: customerName, v: handle, b: id, ax: intent, w: kind, ay: lastText, aX: messageCount};
 	});
 var $elm$json$Json$Decode$map8 = _Json_map8;
 var $author$project$Agents$roomRowDecoder = A2(
@@ -7902,11 +7903,11 @@ var $author$project$Agents$roomRowDecoder = A2(
 var $author$project$Agents$getRooms = function (model) {
 	return $elm$http$Http$get(
 		{
-			E: A2(
+			F: A2(
 				$elm$http$Http$expectJson,
 				$author$project$Agents$GotRooms,
 				$elm$json$Json$Decode$list($author$project$Agents$roomRowDecoder)),
-			L: A2($author$project$Agents$merchantUrl, model, '/rooms')
+			M: A2($author$project$Agents$merchantUrl, model, '/rooms')
 		});
 };
 var $author$project$Agents$GotThread = F2(
@@ -7915,7 +7916,7 @@ var $author$project$Agents$GotThread = F2(
 	});
 var $author$project$Agents$Thread = F6(
 	function (room, platform, messages, bandLive, bandFailed, typing) {
-		return {aN: bandFailed, a3: bandLive, a4: messages, a8: platform, a: room, bf: typing};
+		return {aR: bandFailed, a7: bandLive, a8: messages, bc: platform, a: room, bj: typing};
 	});
 var $elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
@@ -7924,7 +7925,7 @@ var $elm$json$Json$Decode$at = F2(
 var $elm$json$Json$Decode$map6 = _Json_map6;
 var $author$project$Agents$Message = F7(
 	function (id, sender, role, text, cites, source, bandStatus) {
-		return {ac: bandStatus, M: cites, b: id, y: role, aj: sender, z: source, al: text};
+		return {ah: bandStatus, N: cites, b: id, y: role, ao: sender, z: source, aq: text};
 	});
 var $author$project$Agents$messageDecoder = A8(
 	$elm$json$Json$Decode$map7,
@@ -7991,11 +7992,11 @@ var $author$project$Agents$getThread = F2(
 	function (model, id) {
 		return $elm$http$Http$get(
 			{
-				E: A2(
+				F: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Agents$GotThread(id),
 					$author$project$Agents$threadDecoder),
-				L: A2(
+				M: A2(
 					$author$project$Agents$merchantUrl,
 					model,
 					'/rooms/' + $elm$core$String$fromInt(id))
@@ -8042,13 +8043,13 @@ var $elm$json$Json$Encode$object = function (pairs) {
 };
 var $elm$http$Http$post = function (r) {
 	return $elm$http$Http$request(
-		{aO: r.aO, E: r.E, bs: _List_Nil, cp: 'POST', cE: $elm$core$Maybe$Nothing, bZ: $elm$core$Maybe$Nothing, L: r.L});
+		{aS: r.aS, F: r.F, bw: _List_Nil, ct: 'POST', cI: $elm$core$Maybe$Nothing, b1: $elm$core$Maybe$Nothing, M: r.M});
 };
 var $author$project$Agents$postMessage = F3(
 	function (model, id, body) {
 		return $elm$http$Http$post(
 			{
-				aO: $elm$http$Http$jsonBody(
+				aS: $elm$http$Http$jsonBody(
 					$elm$json$Json$Encode$object(
 						_List_fromArray(
 							[
@@ -8056,8 +8057,8 @@ var $author$project$Agents$postMessage = F3(
 								'text',
 								$elm$json$Json$Encode$string(body))
 							]))),
-				E: $elm$http$Http$expectWhatever($author$project$Agents$Sent),
-				L: A2(
+				F: $elm$http$Http$expectWhatever($author$project$Agents$Sent),
+				M: A2(
 					$author$project$Agents$merchantUrl,
 					model,
 					'/rooms/' + ($elm$core$String$fromInt(id) + '/messages'))
@@ -8070,7 +8071,7 @@ var $author$project$Agents$postRoom = F2(
 	function (model, topic) {
 		return $elm$http$Http$post(
 			{
-				aO: $elm$http$Http$jsonBody(
+				aS: $elm$http$Http$jsonBody(
 					$elm$json$Json$Encode$object(
 						_List_fromArray(
 							[
@@ -8078,11 +8079,11 @@ var $author$project$Agents$postRoom = F2(
 								'topic',
 								$elm$json$Json$Encode$string(topic))
 							]))),
-				E: A2(
+				F: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Agents$Created,
 					A2($elm$json$Json$Decode$field, 'id', $elm$json$Json$Decode$int)),
-				L: A2($author$project$Agents$merchantUrl, model, '/rooms')
+				M: A2($author$project$Agents$merchantUrl, model, '/rooms')
 			});
 	});
 var $author$project$Agents$refreshThread = function (model) {
@@ -8097,84 +8098,84 @@ var $author$project$Agents$refreshThread = function (model) {
 var $author$project$Agents$sampleRooms = _List_fromArray(
 	[
 		{
-		aa: $elm$core$Maybe$Just('sample'),
-		ab: 4,
-		aq: $elm$core$Maybe$Nothing,
+		af: $elm$core$Maybe$Just('sample'),
+		ag: 4,
+		av: $elm$core$Maybe$Nothing,
 		v: '@staff/you',
 		b: 1,
-		as: $elm$core$Maybe$Just('Weekend plan'),
+		ax: $elm$core$Maybe$Just('Weekend plan'),
 		w: 'team',
-		at: $elm$core$Maybe$Just('@promo: I\'d push the camel wool overcoat at 10% off.'),
-		aT: 4
+		ay: $elm$core$Maybe$Just('@promo: I\'d push the camel wool overcoat at 10% off.'),
+		aX: 4
 	},
 		{
-		aa: $elm$core$Maybe$Just('sample'),
-		ab: 6,
-		aq: $elm$core$Maybe$Just('Dana Kim'),
+		af: $elm$core$Maybe$Just('sample'),
+		ag: 6,
+		av: $elm$core$Maybe$Just('Dana Kim'),
 		v: '@muse/dana.k',
 		b: 2,
-		as: $elm$core$Maybe$Just('Linen trousers'),
+		ax: $elm$core$Maybe$Just('Linen trousers'),
 		w: 'shop',
-		at: $elm$core$Maybe$Just('@muse/dana.k: Accepted. Checking out.'),
-		aT: 6
+		ay: $elm$core$Maybe$Just('@muse/dana.k: Accepted. Checking out.'),
+		aX: 6
 	}
 	]);
 var $author$project$Agents$sampleThread = {
-	aN: 0,
-	a3: true,
-	a4: _List_fromArray(
+	aR: 0,
+	a7: true,
+	a8: _List_fromArray(
 		[
 			{
-			ac: $elm$core$Maybe$Just('sent'),
-			M: _List_Nil,
+			ah: $elm$core$Maybe$Just('sent'),
+			N: _List_Nil,
 			b: 1,
 			y: 'sys',
-			aj: 'system',
+			ao: 'system',
 			z: $elm$core$Maybe$Nothing,
-			al: 'Team room opened: Weekend plan. @mention an agent to bring it in.'
+			aq: 'Team room opened: Weekend plan. @mention an agent to bring it in.'
 		},
 			{
-			ac: $elm$core$Maybe$Just('sent'),
-			M: _List_Nil,
+			ah: $elm$core$Maybe$Just('sent'),
+			N: _List_Nil,
 			b: 2,
 			y: 'staff',
-			aj: '@staff/you',
+			ao: '@staff/you',
 			z: $elm$core$Maybe$Nothing,
-			al: '@stylist @promo what should we push this weekend?'
+			aq: '@stylist @promo what should we push this weekend?'
 		},
 			{
-			ac: $elm$core$Maybe$Just('sent'),
-			M: _List_Nil,
+			ah: $elm$core$Maybe$Just('sent'),
+			N: _List_Nil,
 			b: 3,
 			y: 'agent',
-			aj: '@stylist',
+			ao: '@stylist',
 			z: $elm$core$Maybe$Just('sim'),
-			al: 'Best sellers: Field Runner sneaker, Waxed jacket (5 left), Camel wool overcoat.'
+			aq: 'Best sellers: Field Runner sneaker, Waxed jacket (5 left), Camel wool overcoat.'
 		},
 			{
-			ac: $elm$core$Maybe$Just('sent'),
-			M: _List_fromArray(
+			ah: $elm$core$Maybe$Just('sent'),
+			N: _List_fromArray(
 				['zoowork · 12.2 s']),
 			b: 4,
 			y: 'agent',
-			aj: '@promo',
+			ao: '@promo',
 			z: $elm$core$Maybe$Just('zoowork'),
-			al: 'I\'d push the camel wool overcoat this weekend at 10% off: 13 in stock and it fits the weather.'
+			aq: 'I\'d push the camel wool overcoat this weekend at 10% off: 13 in stock and it fits the weather.'
 		}
 		]),
-	a8: 'Team',
+	bc: 'Team',
 	a: {
-		aa: $elm$core$Maybe$Just('sample'),
-		ab: 4,
-		aq: $elm$core$Maybe$Nothing,
+		af: $elm$core$Maybe$Just('sample'),
+		ag: 4,
+		av: $elm$core$Maybe$Nothing,
 		v: '@staff/you',
 		b: 1,
-		as: $elm$core$Maybe$Just('Weekend plan'),
+		ax: $elm$core$Maybe$Just('Weekend plan'),
 		w: 'team',
-		at: $elm$core$Maybe$Nothing,
-		aT: 4
+		ay: $elm$core$Maybe$Nothing,
+		aX: 4
 	},
-	bf: _List_Nil
+	bj: _List_Nil
 };
 var $author$project$Agents$visible = F2(
 	function (filter, rooms) {
@@ -8195,7 +8196,7 @@ var $author$project$Agents$update = F2(
 						_Utils_update(
 							model,
 							{
-								aQ: $elm$core$Maybe$Just(h)
+								aU: $elm$core$Maybe$Just(h)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -8207,7 +8208,7 @@ var $author$project$Agents$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{aM: agents}),
+							{aQ: agents}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -8233,7 +8234,7 @@ var $author$project$Agents$update = F2(
 										return $.b;
 									},
 									$elm$core$List$head(ms))),
-							ay: ms
+							aD: ms
 						});
 					return _Utils_Tuple2(
 						m,
@@ -8249,10 +8250,10 @@ var $author$project$Agents$update = F2(
 							model,
 							{
 								l: 2,
-								T: _List_Nil,
+								V: _List_Nil,
 								a: $elm$core$Maybe$Just(1),
-								W: $author$project$Agents$sampleRooms,
-								J: $elm$core$Maybe$Just($author$project$Agents$sampleThread)
+								Y: $author$project$Agents$sampleRooms,
+								K: $elm$core$Maybe$Just($author$project$Agents$sampleThread)
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -8271,13 +8272,13 @@ var $author$project$Agents$update = F2(
 									return $.b;
 								},
 								$elm$core$List$head(
-									A2($author$project$Agents$visible, model.O, rs)));
+									A2($author$project$Agents$visible, model.P, rs)));
 						}
 					}();
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{a: room, W: rs}),
+							{a: room, Y: rs}),
 						function () {
 							var _v1 = _Utils_Tuple2(room, model.a);
 							if ((!_v1.a.$) && (_v1.b.$ === 1)) {
@@ -8301,7 +8302,7 @@ var $author$project$Agents$update = F2(
 						_Utils_update(
 							model,
 							{
-								J: $elm$core$Maybe$Just(t)
+								K: $elm$core$Maybe$Just(t)
 							}),
 						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				} else {
@@ -8313,7 +8314,7 @@ var $author$project$Agents$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{T: ps}),
+							{V: ps}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -8327,10 +8328,10 @@ var $author$project$Agents$update = F2(
 							$elm$core$Maybe$withDefault,
 							model.p,
 							$elm$core$String$toInt(s)),
-						T: _List_Nil,
+						V: _List_Nil,
 						a: $elm$core$Maybe$Nothing,
-						W: _List_Nil,
-						J: $elm$core$Maybe$Nothing
+						Y: _List_Nil,
+						K: $elm$core$Maybe$Nothing
 					});
 				return _Utils_Tuple2(
 					m,
@@ -8347,7 +8348,7 @@ var $author$project$Agents$update = F2(
 						model,
 						{
 							a: $elm$core$Maybe$Just(id),
-							J: $elm$core$Maybe$Nothing
+							K: $elm$core$Maybe$Nothing
 						}),
 					(model.l === 1) ? A2($author$project$Agents$getThread, model, id) : $elm$core$Platform$Cmd$none);
 			case 8:
@@ -8355,7 +8356,7 @@ var $author$project$Agents$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{O: f}),
+						{P: f}),
 					$elm$core$Platform$Cmd$none);
 			case 9:
 				var s = msg.a;
@@ -8386,7 +8387,7 @@ var $author$project$Agents$update = F2(
 					return $elm$core$String$isEmpty(body) ? _Utils_Tuple2(model, $elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{k: '', N: $elm$core$Maybe$Nothing}),
+							{k: '', O: $elm$core$Maybe$Nothing}),
 						A3($author$project$Agents$postMessage, model, id, body));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -8401,7 +8402,7 @@ var $author$project$Agents$update = F2(
 						_Utils_update(
 							model,
 							{
-								N: $elm$core$Maybe$Just('Couldn\'t send the message. Is the Tabard API running?')
+								O: $elm$core$Maybe$Just('Couldn\'t send the message. Is the Tabard API running?')
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -8410,14 +8411,14 @@ var $author$project$Agents$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{X: s}),
+						{aa: s}),
 					$elm$core$Platform$Cmd$none);
 			case 14:
-				var t = $elm$core$String$trim(model.X);
+				var t = $elm$core$String$trim(model.aa);
 				return ($elm$core$String$isEmpty(t) || (model.l !== 1)) ? _Utils_Tuple2(model, $elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{N: $elm$core$Maybe$Nothing, X: ''}),
+						{O: $elm$core$Maybe$Nothing, aa: ''}),
 					A2($author$project$Agents$postRoom, model, t));
 			case 15:
 				if (!msg.a.$) {
@@ -8425,9 +8426,9 @@ var $author$project$Agents$update = F2(
 					var m = _Utils_update(
 						model,
 						{
-							O: 'all',
+							P: 'all',
 							a: $elm$core$Maybe$Just(id),
-							J: $elm$core$Maybe$Nothing
+							K: $elm$core$Maybe$Nothing
 						});
 					return _Utils_Tuple2(
 						m,
@@ -8442,7 +8443,7 @@ var $author$project$Agents$update = F2(
 						_Utils_update(
 							model,
 							{
-								N: $elm$core$Maybe$Just('Couldn\'t open the team room.')
+								O: $elm$core$Maybe$Just('Couldn\'t open the team room.')
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -8503,7 +8504,7 @@ var $author$project$Mission$WireItem = function (id) {
 										return function (text) {
 											return function (cites) {
 												return function (source) {
-													return {M: cites, br: from, ar: fromRole, b: id, p: merchant, ag: merchantId, a8: platform, aE: roomId, bS: roomKind, z: source, al: text, bY: time, g: to};
+													return {N: cites, bv: from, aw: fromRole, b: id, p: merchant, ak: merchantId, bc: platform, aJ: roomId, bW: roomKind, z: source, aq: text, b0: time, g: to};
 												};
 											};
 										};
@@ -8609,7 +8610,7 @@ var $author$project$Mission$GotLinks = function (a) {
 };
 var $author$project$Mission$Link = F3(
 	function (from, to, count) {
-		return {ad: count, br: from, g: to};
+		return {ai: count, bv: from, g: to};
 	});
 var $author$project$Mission$linkDecoder = A4(
 	$elm$json$Json$Decode$map3,
@@ -8620,11 +8621,11 @@ var $author$project$Mission$linkDecoder = A4(
 var $author$project$Mission$fetchLinks = function (api) {
 	return $elm$http$Http$get(
 		{
-			E: A2(
+			F: A2(
 				$elm$http$Http$expectJson,
 				$author$project$Mission$GotLinks,
 				$elm$json$Json$Decode$list($author$project$Mission$linkDecoder)),
-			L: api + '/mission/links?minutes=60'
+			M: api + '/mission/links?minutes=60'
 		});
 };
 var $author$project$Mission$GotThread = F2(
@@ -8641,7 +8642,7 @@ var $author$project$Data$Room = function (id) {
 							return function (line) {
 								return function (members) {
 									return function (posts) {
-										return {ap: customer, v: handle, b: id, as: intent, au: line, ax: members, aB: opened, a8: platform, aC: posts, aH: state};
+										return {au: customer, v: handle, b: id, ax: intent, az: line, aC: members, aG: opened, bc: platform, aH: posts, aL: state};
 									};
 								};
 							};
@@ -8654,7 +8655,7 @@ var $author$project$Data$Room = function (id) {
 };
 var $author$project$Data$Post = F6(
 	function (from, kind, text, payload, cites, approval) {
-		return {a1: approval, M: cites, br: from, w: kind, a7: payload, al: text};
+		return {a5: approval, N: cites, bv: from, w: kind, bb: payload, aq: text};
 	});
 var $author$project$Mission$postDecoder = A7(
 	$elm$json$Json$Decode$map6,
@@ -8779,11 +8780,11 @@ var $author$project$Mission$fetchThread = F2(
 	function (api, item) {
 		return $elm$http$Http$get(
 			{
-				E: A2(
+				F: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Mission$GotThread(item),
 					A2($elm$json$Json$Decode$field, 'room', $author$project$Mission$roomDecoder)),
-				L: api + ('/mission/rooms/' + ($elm$core$String$fromInt(item.ag) + ('/' + item.aE)))
+				M: api + ('/mission/rooms/' + ($elm$core$String$fromInt(item.ak) + ('/' + item.aJ)))
 			});
 	});
 var $author$project$Mission$GotWire = function (a) {
@@ -8793,11 +8794,11 @@ var $author$project$Mission$fetchWire = F2(
 	function (api, after) {
 		return $elm$http$Http$get(
 			{
-				E: A2(
+				F: A2(
 					$elm$http$Http$expectJson,
 					$author$project$Mission$GotWire,
 					$elm$json$Json$Decode$list($author$project$Mission$wireDecoder)),
-				L: api + ('/mission/wire?limit=200' + A2(
+				M: api + ('/mission/wire?limit=200' + A2(
 					$elm$core$Maybe$withDefault,
 					'',
 					A2(
@@ -8944,14 +8945,14 @@ var $author$project$Mission$ingest = F2(
 				function ($) {
 					return $.b;
 				},
-				_Utils_ap(model.t, model.h)));
+				_Utils_ap(model.t, model.i)));
 		var fresh = A2(
 			$elm$core$List$filter,
 			function (i) {
 				return !A2($elm$core$Set$member, i.b, seen);
 			},
 			items);
-		return $elm$core$List$isEmpty(fresh) ? model : (model.R ? _Utils_update(
+		return $elm$core$List$isEmpty(fresh) ? model : (model.T ? _Utils_update(
 			model,
 			{
 				t: A2(
@@ -8961,10 +8962,10 @@ var $author$project$Mission$ingest = F2(
 			}) : _Utils_update(
 			model,
 			{
-				h: A2(
+				i: A2(
 					$elm$core$List$take,
 					$author$project$Mission$wireCap,
-					_Utils_ap(fresh, model.h))
+					_Utils_ap(fresh, model.i))
 			}));
 	});
 var $elm$core$List$maximum = function (list) {
@@ -8984,7 +8985,7 @@ var $author$project$Mission$lastId = function (model) {
 			function ($) {
 				return $.b;
 			},
-			_Utils_ap(model.t, model.h)));
+			_Utils_ap(model.t, model.i)));
 };
 var $author$project$Mission$missionConnect = _Platform_outgoingPort('missionConnect', $elm$json$Json$Encode$string);
 var $elm$core$Set$remove = F2(
@@ -8999,7 +9000,7 @@ var $author$project$Mission$sampleThread = function (item) {
 			function (_v1) {
 				var mid = _v1.a;
 				var r = _v1.c;
-				return _Utils_eq(mid, item.ag) && _Utils_eq(r.b, item.aE);
+				return _Utils_eq(mid, item.ak) && _Utils_eq(r.b, item.aJ);
 			},
 			$author$project$Mission$sampleRooms));
 	if (!_v0.$) {
@@ -9022,10 +9023,10 @@ var $author$project$Mission$update = F2(
 							model,
 							{
 								l: firstContact ? 2 : model.l,
-								ay: snap.ay,
-								J: firstContact ? $author$project$Mission$NoThread : model.J,
-								i: snap.i,
-								h: firstContact ? _List_Nil : model.h
+								aD: snap.aD,
+								K: firstContact ? $author$project$Mission$NoThread : model.K,
+								j: snap.j,
+								i: firstContact ? _List_Nil : model.i
 							}),
 						firstContact ? $elm$core$Platform$Cmd$batch(
 							_List_fromArray(
@@ -9060,7 +9061,7 @@ var $author$project$Mission$update = F2(
 						_Utils_update(
 							model,
 							{
-								aY: $elm$core$Maybe$Just(ls)
+								a0: $elm$core$Maybe$Just(ls)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -9074,7 +9075,7 @@ var $author$project$Mission$update = F2(
 						_Utils_update(
 							model,
 							{
-								J: A2($author$project$Mission$Loaded, item, room)
+								K: A2($author$project$Mission$Loaded, item, room)
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -9083,7 +9084,7 @@ var $author$project$Mission$update = F2(
 						_Utils_update(
 							model,
 							{
-								J: $author$project$Mission$Failed(item)
+								K: $author$project$Mission$Failed(item)
 							}),
 						$elm$core$Platform$Cmd$none);
 				}
@@ -9120,7 +9121,7 @@ var $author$project$Mission$update = F2(
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{i: t}),
+									{j: t}),
 								$elm$core$Platform$Cmd$none);
 						default:
 							var m = _v1.a.a;
@@ -9128,18 +9129,18 @@ var $author$project$Mission$update = F2(
 								_Utils_update(
 									model,
 									{
-										ay: A2(
+										aD: A2(
 											$elm$core$List$any,
 											function (x) {
 												return _Utils_eq(x.b, m.b);
 											},
-											model.ay) ? A2(
+											model.aD) ? A2(
 											$elm$core$List$map,
 											function (x) {
 												return _Utils_eq(x.b, m.b) ? m : x;
 											},
-											model.ay) : _Utils_ap(
-											model.ay,
+											model.aD) : _Utils_ap(
+											model.aD,
 											_List_fromArray(
 												[m]))
 									}),
@@ -9169,21 +9170,21 @@ var $author$project$Mission$update = F2(
 					model,
 					$author$project$Mission$fetchLinks(model.u));
 			case 9:
-				return model.R ? _Utils_Tuple2(
+				return model.T ? _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							R: false,
+							T: false,
 							t: _List_Nil,
-							h: A2(
+							i: A2(
 								$elm$core$List$take,
 								$author$project$Mission$wireCap,
-								_Utils_ap(model.t, model.h))
+								_Utils_ap(model.t, model.i))
 						}),
 					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{R: true}),
+						{T: true}),
 					$elm$core$Platform$Cmd$none);
 			case 10:
 				var m = msg.a;
@@ -9197,14 +9198,14 @@ var $author$project$Mission$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{F: h}),
+						{G: h}),
 					$elm$core$Platform$Cmd$none);
 			case 12:
 				var p = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{S: p}),
+						{U: p}),
 					$elm$core$Platform$Cmd$none);
 			case 13:
 				var key = msg.a;
@@ -9212,7 +9213,7 @@ var $author$project$Mission$update = F2(
 					_Utils_update(
 						model,
 						{
-							G: A2($elm$core$Set$member, key, model.G) ? A2($elm$core$Set$remove, key, model.G) : A2($elm$core$Set$insert, key, model.G)
+							H: A2($elm$core$Set$member, key, model.H) ? A2($elm$core$Set$remove, key, model.H) : A2($elm$core$Set$insert, key, model.H)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 14:
@@ -9220,7 +9221,7 @@ var $author$project$Mission$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{aG: s}),
+						{aK: s}),
 					$elm$core$Platform$Cmd$none);
 			case 15:
 				var item = msg.a;
@@ -9228,20 +9229,20 @@ var $author$project$Mission$update = F2(
 					_Utils_update(
 						model,
 						{
-							J: $author$project$Mission$sampleThread(item)
+							K: $author$project$Mission$sampleThread(item)
 						}),
 					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							J: $author$project$Mission$Loading(item)
+							K: $author$project$Mission$Loading(item)
 						}),
 					A2($author$project$Mission$fetchThread, model.u, item));
 			default:
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{J: $author$project$Mission$NoThread}),
+						{K: $author$project$Mission$NoThread}),
 					$elm$core$Platform$Cmd$none);
 		}
 	});
@@ -9253,6 +9254,8 @@ var $author$project$Main$viewKey = function (v) {
 			return 'mission';
 		case 2:
 			return 'agents';
+		case 3:
+			return 'sponsors';
 		default:
 			return 'design';
 	}
@@ -9267,14 +9270,14 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{a0: zone}),
+						{a4: zone}),
 					$elm$core$Platform$Cmd$none);
 			case 2:
 				var v = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{j: v}),
+						{h: v}),
 					$author$project$Main$saveView(
 						$author$project$Main$viewKey(v)));
 			case 3:
@@ -9289,7 +9292,7 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{o: $author$project$Main$NoCall, D: id, A: 0}),
+						{o: $author$project$Main$NoCall, E: id, A: 0}),
 					$author$project$Main$scrollToEnd('feed'));
 			case 5:
 				var refId = msg.a;
@@ -9305,26 +9308,26 @@ var $author$project$Main$update = F2(
 				var act = msg.b;
 				var now = msg.c;
 				var entry = {
-					b4: '@staff/you',
-					b9: 'Approved in console',
-					bm: refId + (': ' + act),
-					bY: A2($author$project$Main$clock, model.a0, now),
-					cH: '—'
+					b8: '@staff/you',
+					cd: 'Approved in console',
+					bq: refId + (': ' + act),
+					b0: A2($author$project$Main$clock, model.a4, now),
+					cL: '—'
 				};
 				var decided = _Utils_update(
 					model,
 					{
-						aw: A2($elm$core$List$cons, entry, model.aw),
-						V: A2(
+						aB: A2($elm$core$List$cons, entry, model.aB),
+						X: A2(
 							$elm$core$List$map,
 							function (f) {
 								return _Utils_eq(f.b, refId) ? _Utils_update(
 									f,
 									{
-										bm: $elm$core$Maybe$Just(act)
+										bq: $elm$core$Maybe$Just(act)
 									}) : f;
 							},
-							model.V)
+							model.X)
 					});
 				return (refId === 'RF-2207') ? _Utils_Tuple2(
 					A3(
@@ -9334,8 +9337,8 @@ var $author$project$Main$update = F2(
 							return _Utils_update(
 								r,
 								{
-									aC: _Utils_ap(
-										r.aC,
+									aH: _Utils_ap(
+										r.aH,
 										_List_fromArray(
 											[
 												A3(
@@ -9344,7 +9347,7 @@ var $author$project$Main$update = F2(
 												0,
 												'The store\'s decision on ' + (refId + (': ' + ($elm$core$String$toLower(act) + '. I\'ll tell the buyer agent now.'))))
 											])),
-									aH: _Utils_Tuple2('Resolved', 3)
+									aL: _Utils_Tuple2('Resolved', 3)
 								});
 						},
 						decided),
@@ -9361,7 +9364,7 @@ var $author$project$Main$update = F2(
 				return (text === '') ? _Utils_Tuple2(model, $elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 					A3(
 						$author$project$Main$updateRoom,
-						model.D,
+						model.E,
 						A2(
 							$elm$core$Basics$composeR,
 							$author$project$Main$joinStaff,
@@ -9375,7 +9378,7 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					A3(
 						$author$project$Main$updateRoom,
-						model.D,
+						model.E,
 						A2(
 							$elm$core$Basics$composeR,
 							$author$project$Main$joinStaff,
@@ -9422,23 +9425,23 @@ var $author$project$Main$update = F2(
 				return $author$project$Main$endCall(model);
 			case 13:
 				var m = msg.a;
-				var _v3 = A2($author$project$Mission$update, m, model.ah);
+				var _v3 = A2($author$project$Mission$update, m, model.al);
 				var mission = _v3.a;
 				var cmd = _v3.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{ah: mission}),
+						{al: mission}),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$MissionMsg, cmd));
 			default:
 				var m = msg.a;
-				var _v4 = A2($author$project$Agents$update, m, model.Z);
+				var _v4 = A2($author$project$Agents$update, m, model.ad);
 				var agents = _v4.a;
 				var cmd = _v4.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{Z: agents}),
+						{ad: agents}),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$AgentsMsg, cmd));
 		}
 	});
@@ -9594,7 +9597,7 @@ var $author$project$Agents$viewAd = F2(
 			_List_fromArray(
 				[
 					function () {
-					var _v0 = p.bw;
+					var _v0 = p.bA;
 					if (!_v0.$) {
 						var url = _v0.a;
 						return A2(
@@ -9605,7 +9608,7 @@ var $author$project$Agents$viewAd = F2(
 									_Utils_ap(
 										$author$project$Agents$origin(model),
 										url)),
-									$elm$html$Html$Attributes$alt(p.aP + ('. ' + p.aO))
+									$elm$html$Html$Attributes$alt(p.aT + ('. ' + p.aS))
 								]),
 							_List_Nil);
 					} else {
@@ -9626,14 +9629,14 @@ var $author$project$Agents$viewAd = F2(
 									_List_fromArray(
 										[
 											$elm$html$Html$text(
-											$elm$core$String$fromInt(p.bF) + '% off')
+											$elm$core$String$fromInt(p.bJ) + '% off')
 										])),
 									A2(
 									$elm$html$Html$b,
 									_List_Nil,
 									_List_fromArray(
 										[
-											$elm$html$Html$text(p.aP)
+											$elm$html$Html$text(p.aT)
 										])),
 									A2(
 									$elm$html$Html$span,
@@ -9642,7 +9645,7 @@ var $author$project$Agents$viewAd = F2(
 										[
 											$elm$html$Html$text(
 											function () {
-												var _v1 = p.bv;
+												var _v1 = p.bz;
 												_v1$2:
 												while (true) {
 													if (!_v1.$) {
@@ -9680,7 +9683,7 @@ var $author$project$Agents$viewAd = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(p.aP)
+									$elm$html$Html$text(p.aT)
 								])),
 							A2(
 							$elm$html$Html$span,
@@ -9691,7 +9694,7 @@ var $author$project$Agents$viewAd = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									p.bL + (' · $' + ($elm$core$String$fromInt(p.bI) + (' (was $' + ($elm$core$String$fromInt(p.by) + (') · seen by ' + $elm$core$String$fromInt(p.bU)))))))
+									p.bP + (' · $' + ($elm$core$String$fromInt(p.bM) + (' (was $' + ($elm$core$String$fromInt(p.bC) + (') · seen by ' + $elm$core$String$fromInt(p.bY)))))))
 								])),
 							A2(
 							$elm$html$Html$span,
@@ -9706,12 +9709,12 @@ var $author$project$Agents$viewAd = F2(
 									_List_fromArray(
 										[
 											$elm$html$Html$Attributes$class(
-											'pill ' + $author$project$Agents$statusTone(p.bc))
+											'pill ' + $author$project$Agents$statusTone(p.bg))
 										]),
 									_List_fromArray(
 										[
 											$elm$html$Html$text(
-											$author$project$Agents$statusLabel(p.bc))
+											$author$project$Agents$statusLabel(p.bg))
 										])),
 									_Utils_eq(
 									p.z,
@@ -9776,7 +9779,7 @@ var $author$project$Agents$viewAds = function (model) {
 								$elm$html$Html$text('Drafted by the ZooWork promo agent; artwork painted with its designer skill')
 							]))
 					])),
-				$elm$core$List$isEmpty(model.T) ? A2(
+				$elm$core$List$isEmpty(model.V) ? A2(
 				$elm$html$Html$p,
 				_List_fromArray(
 					[
@@ -9795,7 +9798,7 @@ var $author$project$Agents$viewAds = function (model) {
 				A2(
 					$elm$core$List$map,
 					$author$project$Agents$viewAd(model),
-					A2($elm$core$List$take, 12, model.T)))
+					A2($elm$core$List$take, 12, model.V)))
 			]));
 };
 var $author$project$Agents$SelectMerchant = function (a) {
@@ -9835,7 +9838,7 @@ var $elm$html$Html$select = _VirtualDom_node('select');
 var $elm$html$Html$Attributes$selected = $elm$html$Html$Attributes$boolProperty('selected');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $author$project$Agents$viewMerchantPicker = function (model) {
-	return $elm$core$List$isEmpty(model.ay) ? $elm$html$Html$text('') : A2(
+	return $elm$core$List$isEmpty(model.aD) ? $elm$html$Html$text('') : A2(
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
@@ -9875,10 +9878,10 @@ var $author$project$Agents$viewMerchantPicker = function (model) {
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(m.bA + (' · ' + m.bj))
+									$elm$html$Html$text(m.bE + (' · ' + m.bn))
 								]));
 					},
-					model.ay))
+					model.aD))
 			]));
 };
 var $author$project$Agents$CreateRoom = {$: 14};
@@ -9950,7 +9953,7 @@ var $author$project$Agents$kindTone = function (k) {
 };
 var $elm$html$Html$li = _VirtualDom_node('li');
 var $author$project$Agents$roomTitle = function (r) {
-	return (r.w === 'team') ? A2($elm$core$Maybe$withDefault, 'Team room', r.as) : A2($elm$core$Maybe$withDefault, r.v, r.aq);
+	return (r.w === 'team') ? A2($elm$core$Maybe$withDefault, 'Team room', r.ax) : A2($elm$core$Maybe$withDefault, r.v, r.av);
 };
 var $author$project$Agents$viewRoomRow = F2(
 	function (current, r) {
@@ -10017,7 +10020,7 @@ var $author$project$Agents$viewRoomRow = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($elm$core$Maybe$withDefault, 'No messages yet', r.at))
+									A2($elm$core$Maybe$withDefault, 'No messages yet', r.ay))
 								])),
 							A2(
 							$elm$html$Html$span,
@@ -10030,7 +10033,7 @@ var $author$project$Agents$viewRoomRow = F2(
 									$elm$html$Html$text(
 									_Utils_ap(
 										r.v,
-										(!_Utils_eq(r.aa, $elm$core$Maybe$Nothing)) ? (' · ◆ on Band (' + ($elm$core$String$fromInt(r.ab) + ')')) : ''))
+										(!_Utils_eq(r.af, $elm$core$Maybe$Nothing)) ? (' · ◆ on Band (' + ($elm$core$String$fromInt(r.ag) + ')')) : ''))
 								]))
 						]))
 				]));
@@ -10066,7 +10069,7 @@ var $author$project$Agents$viewRooms = function (model) {
 						[
 							$elm$html$Html$text(
 							$elm$core$String$fromInt(
-								$elm$core$List$length(model.W)))
+								$elm$core$List$length(model.Y)))
 						]))
 				])),
 			A2(
@@ -10082,7 +10085,7 @@ var $author$project$Agents$viewRooms = function (model) {
 					$elm$html$Html$input,
 					_List_fromArray(
 						[
-							$elm$html$Html$Attributes$value(model.X),
+							$elm$html$Html$Attributes$value(model.aa),
 							$elm$html$Html$Events$onInput($author$project$Agents$Topic),
 							$elm$html$Html$Attributes$placeholder('New team room, e.g. Weekend plan'),
 							A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Team room topic')
@@ -10096,7 +10099,7 @@ var $author$project$Agents$viewRooms = function (model) {
 							$elm$html$Html$Attributes$type_('submit'),
 							$elm$html$Html$Attributes$disabled(
 							$elm$core$String$isEmpty(
-								$elm$core$String$trim(model.X)))
+								$elm$core$String$trim(model.aa)))
 						]),
 					_List_fromArray(
 						[
@@ -10123,7 +10126,7 @@ var $author$project$Agents$viewRooms = function (model) {
 								$elm$html$Html$Attributes$attribute,
 								'aria-pressed',
 								$author$project$Agents$boolStr(
-									_Utils_eq(model.O, k))),
+									_Utils_eq(model.P, k))),
 								$elm$html$Html$Events$onClick(
 								$author$project$Agents$SetFilter(k))
 							]),
@@ -10152,7 +10155,7 @@ var $author$project$Agents$viewRooms = function (model) {
 				A2(
 					$elm$core$List$take,
 					40,
-					A2($author$project$Agents$visible, model.O, model.W))))
+					A2($author$project$Agents$visible, model.P, model.Y))))
 		]);
 };
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
@@ -10213,7 +10216,7 @@ var $author$project$Agents$card = F4(
 				body));
 	});
 var $author$project$Agents$viewStatus = function (model) {
-	var h = model.aQ;
+	var h = model.aU;
 	var on = function (f) {
 		return A2(
 			$elm$core$Maybe$withDefault,
@@ -10226,7 +10229,7 @@ var $author$project$Agents$viewStatus = function (model) {
 		A2(
 			$elm$core$Maybe$map,
 			function ($) {
-				return $.b3;
+				return $.b7;
 			},
 			h));
 	return A2(
@@ -10272,11 +10275,11 @@ var $author$project$Agents$viewStatus = function (model) {
 						'Agent-to-agent rooms',
 						on(
 							function ($) {
-								return $.a2;
+								return $.a6;
 							}),
 						on(
 							function ($) {
-								return $.a2;
+								return $.a6;
 							}) ? _List_fromArray(
 							[
 								A2(
@@ -10303,7 +10306,7 @@ var $author$project$Agents$viewStatus = function (model) {
 													_List_fromArray(
 														[
 															_Utils_Tuple2('chip', true),
-															_Utils_Tuple2('chip-bad', !a.bC)
+															_Utils_Tuple2('chip-bad', !a.bG)
 														]))
 												]),
 											_List_fromArray(
@@ -10312,7 +10315,7 @@ var $author$project$Agents$viewStatus = function (model) {
 													A2($elm$core$Maybe$withDefault, '@' + a.y, a.v))
 												]));
 									},
-									model.aM))
+									model.aQ))
 							]) : _List_fromArray(
 							[
 								A2(
@@ -10329,11 +10332,11 @@ var $author$project$Agents$viewStatus = function (model) {
 						'Managed agents',
 						on(
 							function ($) {
-								return $.bg;
+								return $.bk;
 							}),
 						on(
 							function ($) {
-								return $.bg;
+								return $.bk;
 							}) ? _List_fromArray(
 							[
 								A2(
@@ -10380,7 +10383,7 @@ var $author$project$Agents$viewStatus = function (model) {
 						'Web research',
 						on(
 							function ($) {
-								return $.be;
+								return $.bi;
 							}),
 						_List_fromArray(
 							[
@@ -10392,7 +10395,7 @@ var $author$project$Agents$viewStatus = function (model) {
 										$elm$html$Html$text(
 										on(
 											function ($) {
-												return $.be;
+												return $.bi;
 											}) ? 'Reads storefront links (TikTok Shop, Amazon, any site) to build a shop, and finds live competitor prices for every promo offer.' : 'Not configured. Add TAVILY_API_KEY to server/.env to import shops from a link and price offers against the web.')
 									]))
 							]))
@@ -10471,9 +10474,9 @@ var $author$project$Agents$viewMessage = function (m) {
 					]),
 				_List_fromArray(
 					[
-						$elm$html$Html$text(m.aj),
+						$elm$html$Html$text(m.ao),
 						function () {
-						var _v0 = m.ac;
+						var _v0 = m.ah;
 						_v0$2:
 						while (true) {
 							if (!_v0.$) {
@@ -10525,8 +10528,8 @@ var $author$project$Agents$viewMessage = function (m) {
 							[
 								$elm$html$Html$Attributes$class('text')
 							]),
-						$author$project$Agents$mentions(m.al)),
-						($elm$core$List$isEmpty(m.M) && _Utils_eq(m.z, $elm$core$Maybe$Nothing)) ? $elm$html$Html$text('') : A2(
+						$author$project$Agents$mentions(m.aq)),
+						($elm$core$List$isEmpty(m.N) && _Utils_eq(m.z, $elm$core$Maybe$Nothing)) ? $elm$html$Html$text('') : A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
@@ -10593,12 +10596,12 @@ var $author$project$Agents$viewMessage = function (m) {
 												$elm$html$Html$text(c)
 											]));
 								},
-								m.M)))
+								m.N)))
 					]))
 			]));
 };
 var $author$project$Agents$viewThread = function (model) {
-	var _v0 = model.J;
+	var _v0 = model.K;
 	if (_v0.$ === 1) {
 		return _List_fromArray(
 			[
@@ -10642,10 +10645,10 @@ var $author$project$Agents$viewThread = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text(
-								(t.a.w === 'team') ? 'Team room · the owner and the shop\'s agents' : (t.a.v + (' · via ' + t.a8)))
+								(t.a.w === 'team') ? 'Team room · the owner and the shop\'s agents' : (t.a.v + (' · via ' + t.bc)))
 							])),
 						function () {
-						var _v1 = t.a.aa;
+						var _v1 = t.a.af;
 						if (!_v1.$) {
 							var chat = _v1.a;
 							return A2(
@@ -10658,7 +10661,7 @@ var $author$project$Agents$viewThread = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$text(
-										'On Band · ' + ($elm$core$String$fromInt(t.a.ab) + (' sent' + ((t.aN > 0) ? (' · ' + ($elm$core$String$fromInt(t.aN) + ' failed')) : ''))))
+										'On Band · ' + ($elm$core$String$fromInt(t.a.ag) + (' sent' + ((t.aR > 0) ? (' · ' + ($elm$core$String$fromInt(t.aR) + ' failed')) : ''))))
 									]));
 						} else {
 							return A2(
@@ -10670,7 +10673,7 @@ var $author$project$Agents$viewThread = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$text(
-										t.a3 ? 'Not on Band yet' : 'Local room')
+										t.a7 ? 'Not on Band yet' : 'Local room')
 									]));
 						}
 					}()
@@ -10683,7 +10686,7 @@ var $author$project$Agents$viewThread = function (model) {
 						$elm$html$Html$Attributes$id('agents-feed')
 					]),
 				_Utils_ap(
-					A2($elm$core$List$map, $author$project$Agents$viewMessage, t.a4),
+					A2($elm$core$List$map, $author$project$Agents$viewMessage, t.a8),
 					A2(
 						$elm$core$List$map,
 						function (a) {
@@ -10726,9 +10729,9 @@ var $author$project$Agents$viewThread = function (model) {
 											]))
 									]));
 						},
-						t.bf))),
+						t.bj))),
 				function () {
-				var _v2 = model.N;
+				var _v2 = model.O;
 				if (!_v2.$) {
 					var e = _v2.a;
 					return A2(
@@ -12645,16 +12648,16 @@ var $author$project$Mission$merchantHandles = function (model) {
 				A2(
 					$elm$core$Basics$composeR,
 					function ($) {
-						return $.Z;
+						return $.ad;
 					},
 					$elm$core$List$map(
 						function ($) {
 							return $.v;
 						})),
-				model.ay)));
+				model.aD)));
 };
 var $author$project$Mission$links = function (model) {
-	var _v0 = _Utils_Tuple2(model.aY, model.q);
+	var _v0 = _Utils_Tuple2(model.a0, model.q);
 	if ((!_v0.a.$) && (_v0.b.$ === 1)) {
 		var ls = _v0.a.a;
 		var _v1 = _v0.b;
@@ -12668,24 +12671,24 @@ var $author$project$Mission$links = function (model) {
 					$elm$core$List$map,
 					function (t) {
 						return _Utils_Tuple2(
-							A3($author$project$Mission$collapse, ours, i.a8, i.br),
-							A3($author$project$Mission$collapse, ours, i.a8, t));
+							A3($author$project$Mission$collapse, ours, i.bc, i.bv),
+							A3($author$project$Mission$collapse, ours, i.bc, t));
 					},
 					i.g);
 			},
 			A2(
 				$elm$core$List$filter,
 				function (i) {
-					return i.ar !== 'sys';
+					return i.aw !== 'sys';
 				},
 				A2(
 					$elm$core$List$filter,
 					function (i) {
 						return _Utils_eq(model.q, $elm$core$Maybe$Nothing) || _Utils_eq(
 							model.q,
-							$elm$core$Maybe$Just(i.ag));
+							$elm$core$Maybe$Just(i.ak));
 					},
-					model.h)));
+					model.i)));
 		return A2(
 			$elm$core$List$map,
 			function (_v2) {
@@ -12741,7 +12744,7 @@ var $author$project$Mission$graph = function (model) {
 		A2(
 			$elm$core$List$sortBy,
 			function (l) {
-				return -l.ad;
+				return -l.ai;
 			},
 			$author$project$Mission$links(model)));
 	var maxCount = A2(
@@ -12751,7 +12754,7 @@ var $author$project$Mission$graph = function (model) {
 			A2(
 				$elm$core$List$map,
 				function ($) {
-					return $.ad;
+					return $.ai;
 				},
 				ls)));
 	var total = function (keep) {
@@ -12759,7 +12762,7 @@ var $author$project$Mission$graph = function (model) {
 			A2(
 				$elm$core$List$map,
 				function ($) {
-					return $.ad;
+					return $.ai;
 				},
 				A2($elm$core$List$filter, keep, ls)));
 	};
@@ -12784,7 +12787,7 @@ var $author$project$Mission$graph = function (model) {
 		});
 	var lefts = order(
 		function ($) {
-			return $.br;
+			return $.bv;
 		});
 	var rows = A2(
 		$elm$core$Basics$max,
@@ -12821,12 +12824,12 @@ var $author$project$Mission$graph = function (model) {
 					[
 						$elm$svg$Svg$Attributes$class(
 						'node' + ((isOutside(name) ? ' outside' : ' ours') + (_Utils_eq(
-							model.F,
+							model.G,
 							$elm$core$Maybe$Just(name)) ? ' on' : ''))),
 						$elm$html$Html$Events$onClick(
 						$author$project$Mission$FilterHandle(
 							_Utils_eq(
-								model.F,
+								model.G,
 								$elm$core$Maybe$Just(name)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(name)))
 					]),
 				_List_fromArray(
@@ -12865,12 +12868,12 @@ var $author$project$Mission$graph = function (model) {
 	var h = (A2($elm$core$Basics$max, 1, rows) * 26) + 16;
 	var edge = function (l) {
 		var yb = A2(yOf, rights, l.g);
-		var ya = A2(yOf, lefts, l.br);
+		var ya = A2(yOf, lefts, l.bv);
 		var dim = function () {
-			var _v0 = model.F;
+			var _v0 = model.G;
 			if (!_v0.$) {
 				var hf = _v0.a;
-				return (!_Utils_eq(hf, l.br)) && (!_Utils_eq(hf, l.g));
+				return (!_Utils_eq(hf, l.bv)) && (!_Utils_eq(hf, l.g));
 			} else {
 				return false;
 			}
@@ -12882,9 +12885,9 @@ var $author$project$Mission$graph = function (model) {
 				[
 					$elm$svg$Svg$Attributes$d(d),
 					$elm$svg$Svg$Attributes$class(
-					'edge' + (((isOutside(l.br) || isOutside(l.g)) ? ' across' : ' inside') + (dim ? ' dim' : ''))),
+					'edge' + (((isOutside(l.bv) || isOutside(l.g)) ? ' across' : ' inside') + (dim ? ' dim' : ''))),
 					$elm$svg$Svg$Attributes$strokeWidth(
-					$author$project$Mission$f(1.5 + ((9 * l.ad) / maxCount)))
+					$author$project$Mission$f(1.5 + ((9 * l.ai) / maxCount)))
 				]),
 			_List_fromArray(
 				[
@@ -12894,7 +12897,7 @@ var $author$project$Mission$graph = function (model) {
 					_List_fromArray(
 						[
 							$elm$svg$Svg$text(
-							l.br + (' → ' + (l.g + (': ' + ($elm$core$String$fromInt(l.ad) + ' messages')))))
+							l.bv + (' → ' + (l.g + (': ' + ($elm$core$String$fromInt(l.ai) + ' messages')))))
 						]))
 				]));
 	};
@@ -13024,7 +13027,7 @@ var $author$project$Mission$laneToggle = F3(
 					$elm$html$Html$Attributes$attribute,
 					'aria-pressed',
 					$author$project$Mission$boolString(
-						A2($elm$core$Set$member, key, model.G))),
+						A2($elm$core$Set$member, key, model.H))),
 					$elm$html$Html$Events$onClick(
 					$author$project$Mission$ToggleLane(key))
 				]),
@@ -13081,7 +13084,7 @@ var $author$project$Mission$merchantAll = function (model) {
 					[
 						$elm$html$Html$text(
 						$elm$core$String$fromInt(
-							$elm$core$List$length(model.h)) + ' messages on the wire')
+							$elm$core$List$length(model.i)) + ' messages on the wire')
 					]))
 			]));
 };
@@ -13094,11 +13097,11 @@ var $author$project$Mission$agentChip = function (a) {
 				_List_fromArray(
 					[
 						_Utils_Tuple2('chip', true),
-						_Utils_Tuple2('busy', a.bi),
-						_Utils_Tuple2('off', !a.bn)
+						_Utils_Tuple2('busy', a.bm),
+						_Utils_Tuple2('off', !a.br)
 					])),
 				$elm$html$Html$Attributes$title(
-				a.bA + (' · ' + (a.au + (' · ' + ($elm$core$String$fromInt(a.az) + (' msgs/h · ' + (a.bg ? 'ZooWork' : 'simulated')))))))
+				a.bE + (' · ' + (a.az + (' · ' + ($elm$core$String$fromInt(a.aE) + (' msgs/h · ' + (a.bk ? 'ZooWork' : 'simulated')))))))
 			]),
 		_List_fromArray(
 			[
@@ -13157,9 +13160,9 @@ var $author$project$Mission$merchantCard = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(m.bA)
+									$elm$html$Html$text(m.bE)
 								])),
-							(m._ > 0) ? A2(
+							(m.ae > 0) ? A2(
 							$elm$html$Html$span,
 							_List_fromArray(
 								[
@@ -13168,8 +13171,8 @@ var $author$project$Mission$merchantCard = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									$elm$core$String$fromInt(m._) + ' need you')
-								])) : (m.av ? A2(
+									$elm$core$String$fromInt(m.ae) + ' need you')
+								])) : (m.aA ? A2(
 							$elm$html$Html$span,
 							_List_fromArray(
 								[
@@ -13198,7 +13201,7 @@ var $author$project$Mission$merchantCard = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							m.bj + (' · ' + ($elm$core$String$fromInt(m.aA) + (' rooms · ' + ($author$project$Mission$money(m.aD) + (' · ' + ($elm$core$String$fromInt(m.ao) + ' blocked')))))))
+							m.bn + (' · ' + ($elm$core$String$fromInt(m.aF) + (' rooms · ' + ($author$project$Mission$money(m.aI) + (' · ' + ($elm$core$String$fromInt(m.at) + ' blocked')))))))
 						])),
 					A2(
 					$elm$html$Html$span,
@@ -13206,7 +13209,7 @@ var $author$project$Mission$merchantCard = F2(
 						[
 							$elm$html$Html$Attributes$class('agents-row')
 						]),
-					A2($elm$core$List$map, $author$project$Mission$agentChip, m.Z)),
+					A2($elm$core$List$map, $author$project$Mission$agentChip, m.ad)),
 					A2(
 					$elm$html$Html$span,
 					_List_fromArray(
@@ -13216,7 +13219,7 @@ var $author$project$Mission$merchantCard = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							'last activity ' + A2($elm$core$Maybe$withDefault, '—', m.bx))
+							'last activity ' + A2($elm$core$Maybe$withDefault, '—', m.bB))
 						]))
 				]));
 	});
@@ -13276,7 +13279,7 @@ var $author$project$Mission$threadPost = F2(
 							_Utils_Tuple2('msg ' + k, true),
 							_Utils_Tuple2(
 							'hit',
-							_Utils_eq(p.br, item.br) && _Utils_eq(p.al, item.al))
+							_Utils_eq(p.bv, item.bv) && _Utils_eq(p.aq, item.aq))
 						]))
 				]),
 			_List_fromArray(
@@ -13289,7 +13292,7 @@ var $author$project$Mission$threadPost = F2(
 						]),
 					_List_fromArray(
 						[
-							$elm$html$Html$text(p.br)
+							$elm$html$Html$text(p.bv)
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -13307,9 +13310,9 @@ var $author$project$Mission$threadPost = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(p.al)
+									$elm$html$Html$text(p.aq)
 								])),
-							$elm$core$List$isEmpty(p.M) ? $elm$html$Html$text('') : A2(
+							$elm$core$List$isEmpty(p.N) ? $elm$html$Html$text('') : A2(
 							$elm$html$Html$div,
 							_List_fromArray(
 								[
@@ -13335,9 +13338,9 @@ var $author$project$Mission$threadPost = F2(
 												$elm$html$Html$text(c)
 											]));
 								},
-								p.M)),
+								p.N)),
 							function () {
-							var _v0 = p.a7;
+							var _v0 = p.bb;
 							if (!_v0.$) {
 								var payload = _v0.a;
 								return A2(
@@ -13354,7 +13357,7 @@ var $author$project$Mission$threadPost = F2(
 								return $elm$html$Html$text('');
 							}
 						}(),
-							p.a1 ? A2(
+							p.a5 ? A2(
 							$elm$html$Html$div,
 							_List_fromArray(
 								[
@@ -13400,7 +13403,7 @@ var $author$project$Mission$viewThread = function (model) {
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text(item.p + (' · room ' + item.aE))
+										$elm$html$Html$text(item.p + (' · room ' + item.aJ))
 									])),
 								A2(
 								$elm$html$Html$button,
@@ -13417,7 +13420,7 @@ var $author$project$Mission$viewThread = function (model) {
 							])),
 					body));
 		});
-	var _v0 = model.J;
+	var _v0 = model.K;
 	switch (_v0.$) {
 		case 0:
 			return $elm$html$Html$text('');
@@ -13478,7 +13481,7 @@ var $author$project$Mission$viewThread = function (model) {
 								_List_Nil,
 								_List_fromArray(
 									[
-										$elm$html$Html$text(room.as)
+										$elm$html$Html$text(room.ax)
 									])),
 								A2(
 								$elm$html$Html$span,
@@ -13488,9 +13491,9 @@ var $author$project$Mission$viewThread = function (model) {
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text(room.v + (' · via ' + (room.a8 + (' · ' + (room.au + (' · opened ' + room.aB))))))
+										$elm$html$Html$text(room.v + (' · via ' + (room.bc + (' · ' + (room.az + (' · opened ' + room.aG))))))
 									])),
-								$author$project$Mission$pill(room.aH)
+								$author$project$Mission$pill(room.aL)
 							])),
 						A2(
 						$elm$html$Html$div,
@@ -13519,7 +13522,7 @@ var $author$project$Mission$viewThread = function (model) {
 											$elm$html$Html$text(m)
 										]));
 							},
-							room.ax)),
+							room.aC)),
 						A2(
 						$elm$html$Html$div,
 						_List_fromArray(
@@ -13529,7 +13532,7 @@ var $author$project$Mission$viewThread = function (model) {
 						A2(
 							$elm$core$List$map,
 							$author$project$Mission$threadPost(item),
-							room.aC))
+							room.aH))
 					]));
 	}
 };
@@ -13546,7 +13549,7 @@ var $elm$core$List$all = F2(
 	});
 var $author$project$Mission$lane = F2(
 	function (ours, item) {
-		var _v0 = item.ar;
+		var _v0 = item.aw;
 		switch (_v0) {
 			case 'sys':
 				return 3;
@@ -13577,17 +13580,17 @@ var $author$project$Mission$laneKey = function (l) {
 };
 var $author$project$Mission$visible = function (model) {
 	var q = $elm$core$String$toLower(
-		$elm$core$String$trim(model.aG));
+		$elm$core$String$trim(model.aK));
 	var ours = $author$project$Mission$merchantHandles(model);
 	var matches = function (item) {
 		return (_Utils_eq(model.q, $elm$core$Maybe$Nothing) || _Utils_eq(
 			model.q,
-			$elm$core$Maybe$Just(item.ag))) && (((model.S === '') || _Utils_eq(item.a8, model.S)) && (A2(
+			$elm$core$Maybe$Just(item.ak))) && (((model.U === '') || _Utils_eq(item.bc, model.U)) && (A2(
 			$elm$core$Set$member,
 			$author$project$Mission$laneKey(
 				A2($author$project$Mission$lane, ours, item)),
-			model.G) && (function () {
-			var _v0 = model.F;
+			model.H) && (function () {
+			var _v0 = model.G;
 			if (_v0.$ === 1) {
 				return true;
 			} else {
@@ -13597,16 +13600,16 @@ var $author$project$Mission$visible = function (model) {
 					h,
 					A2(
 						$elm$core$List$map,
-						A2($author$project$Mission$collapse, ours, item.a8),
-						A2($elm$core$List$cons, item.br, item.g)));
+						A2($author$project$Mission$collapse, ours, item.bc),
+						A2($elm$core$List$cons, item.bv, item.g)));
 			}
 		}() && ((q === '') || A2(
 			$elm$core$String$contains,
 			q,
 			$elm$core$String$toLower(
-				item.al + (' ' + (item.br + (' ' + (A2($elm$core$String$join, ' ', item.g) + (' ' + item.p)))))))))));
+				item.aq + (' ' + (item.bv + (' ' + (A2($elm$core$String$join, ' ', item.g) + (' ' + item.p)))))))))));
 	};
-	return A2($elm$core$List$filter, matches, model.h);
+	return A2($elm$core$List$filter, matches, model.i);
 };
 var $author$project$Mission$Open = function (a) {
 	return {$: 15, a: a};
@@ -13619,7 +13622,7 @@ var $author$project$Mission$wireRow = F2(
 				$author$project$Mission$merchantHandles(model),
 				item));
 		var isOpen = function () {
-			var _v1 = model.J;
+			var _v1 = model.K;
 			switch (_v1.$) {
 				case 2:
 					var i = _v1.a;
@@ -13664,7 +13667,7 @@ var $author$project$Mission$wireRow = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(item.bY)
+									$elm$html$Html$text(item.b0)
 								])),
 							A2(
 							$elm$html$Html$span,
@@ -13688,11 +13691,11 @@ var $author$project$Mission$wireRow = F2(
 									$elm$html$Html$span,
 									_List_fromArray(
 										[
-											$elm$html$Html$Attributes$class('who-' + item.ar)
+											$elm$html$Html$Attributes$class('who-' + item.aw)
 										]),
 									_List_fromArray(
 										[
-											$elm$html$Html$text(item.br)
+											$elm$html$Html$text(item.bv)
 										])),
 									$elm$core$List$isEmpty(item.g) ? $elm$html$Html$text('') : A2(
 									$elm$html$Html$span,
@@ -13753,9 +13756,9 @@ var $author$project$Mission$wireRow = F2(
 						]),
 					_List_fromArray(
 						[
-							$elm$html$Html$text(item.al)
+							$elm$html$Html$text(item.aq)
 						])),
-					$elm$core$List$isEmpty(item.M) ? $elm$html$Html$text('') : A2(
+					$elm$core$List$isEmpty(item.N) ? $elm$html$Html$text('') : A2(
 					$elm$html$Html$span,
 					_List_fromArray(
 						[
@@ -13781,7 +13784,7 @@ var $author$project$Mission$wireRow = F2(
 										$elm$html$Html$text(c)
 									]));
 						},
-						item.M))
+						item.N))
 				]));
 	});
 var $author$project$Mission$view = function (model) {
@@ -13790,9 +13793,9 @@ var $author$project$Mission$view = function (model) {
 			A2(
 				$elm$core$List$map,
 				function ($) {
-					return $.a8;
+					return $.bc;
 				},
-				model.h)));
+				model.i)));
 	var items = $author$project$Mission$visible(model);
 	return A2(
 		$elm$html$Html$div,
@@ -13834,32 +13837,32 @@ var $author$project$Mission$view = function (model) {
 						A3(
 						$author$project$Mission$kpi,
 						'Merchants',
-						$elm$core$String$fromInt(model.i.av) + (' / ' + $elm$core$String$fromInt(model.i.ay)),
+						$elm$core$String$fromInt(model.j.aA) + (' / ' + $elm$core$String$fromInt(model.j.aD)),
 						'stores with agents on duty'),
 						A3(
 						$author$project$Mission$kpi,
 						'Rooms',
-						$elm$core$String$fromInt(model.i.aA),
+						$elm$core$String$fromInt(model.j.aF),
 						'open conversations with outside agents'),
 						A3(
 						$author$project$Mission$kpi,
 						'Traffic',
-						$elm$core$String$fromInt(model.i.az),
+						$elm$core$String$fromInt(model.j.aE),
 						'agent messages in the last hour'),
 						A3(
 						$author$project$Mission$kpi,
 						'Needs you',
-						$elm$core$String$fromInt(model.i._),
+						$elm$core$String$fromInt(model.j.ae),
 						'decisions waiting for a person'),
 						A3(
 						$author$project$Mission$kpi,
 						'Blocked',
-						$elm$core$String$fromInt(model.i.ao),
+						$elm$core$String$fromInt(model.j.at),
 						'bad bots turned away today'),
 						A3(
 						$author$project$Mission$kpi,
 						'Revenue',
-						$author$project$Mission$money(model.i.aD),
+						$author$project$Mission$money(model.j.aI),
 						'agent-assisted sales today')
 					])),
 				A2(
@@ -13906,7 +13909,7 @@ var $author$project$Mission$view = function (model) {
 											[
 												$elm$html$Html$text(
 												$elm$core$String$fromInt(
-													$elm$core$List$length(model.ay)))
+													$elm$core$List$length(model.aD)))
 											]))
 									])),
 								A2(
@@ -13935,7 +13938,7 @@ var $author$project$Mission$view = function (model) {
 														A2($author$project$Mission$merchantCard, model, m)
 													]));
 										},
-										model.ay)))
+										model.aD)))
 							])),
 						A2(
 						$elm$html$Html$section,
@@ -13973,7 +13976,7 @@ var $author$project$Mission$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												model.R ? ('Resume' + $author$project$Mission$pendingNote(model)) : 'Pause')
+												model.T ? ('Resume' + $author$project$Mission$pendingNote(model)) : 'Pause')
 											]))
 									])),
 								A2(
@@ -14002,7 +14005,7 @@ var $author$project$Mission$view = function (model) {
 												_List_fromArray(
 													[
 														$elm$html$Html$Attributes$value(''),
-														$elm$html$Html$Attributes$selected(model.S === '')
+														$elm$html$Html$Attributes$selected(model.U === '')
 													]),
 												_List_fromArray(
 													[
@@ -14017,7 +14020,7 @@ var $author$project$Mission$view = function (model) {
 															[
 																$elm$html$Html$Attributes$value(p),
 																$elm$html$Html$Attributes$selected(
-																_Utils_eq(model.S, p))
+																_Utils_eq(model.U, p))
 															]),
 														_List_fromArray(
 															[
@@ -14031,13 +14034,13 @@ var $author$project$Mission$view = function (model) {
 											[
 												$elm$html$Html$Attributes$class('wire-search'),
 												$elm$html$Html$Attributes$placeholder('Search messages, handles, stores'),
-												$elm$html$Html$Attributes$value(model.aG),
+												$elm$html$Html$Attributes$value(model.aK),
 												$elm$html$Html$Events$onInput($author$project$Mission$Search)
 											]),
 										_List_Nil)
 									])),
 								function () {
-								var _v0 = model.F;
+								var _v0 = model.G;
 								if (!_v0.$) {
 									var h = _v0.a;
 									return A2(
@@ -14148,6 +14151,271 @@ var $author$project$Mission$view = function (model) {
 					]))
 			]));
 };
+var $author$project$Sponsors$InBuild = 0;
+var $elm$html$Html$article = _VirtualDom_node('article');
+var $author$project$Sponsors$card = function (s) {
+	return A2(
+		$elm$html$Html$article,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('sp sponsor-card')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('sponsor-head')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('role')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(s.y)
+							])),
+						function () {
+						var _v0 = s.bg;
+						if (!_v0) {
+							return A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('pill p-good')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('In the build')
+									]));
+						} else {
+							return A2(
+								$elm$html$Html$span,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('pill p-neutral')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Planned')
+									]));
+						}
+					}()
+					])),
+				A2(
+				$elm$html$Html$h3,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(s.bE)
+					])),
+				A2(
+				$elm$html$Html$p,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(s._)
+					])),
+				A2(
+				$elm$html$Html$span,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('label')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('How we use it')
+					])),
+				A2(
+				$elm$html$Html$ul,
+				_List_Nil,
+				A2(
+					$elm$core$List$map,
+					function (u) {
+						return A2(
+							$elm$html$Html$li,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(u)
+								]));
+					},
+					s.ab)),
+				A2(
+				$elm$html$Html$span,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('label')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('See it in the app')
+					])),
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('note')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(s.Z)
+					])),
+				$elm$core$List$isEmpty(s.D) ? $elm$html$Html$text('') : A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('cite')
+					]),
+				A2(
+					$elm$core$List$map,
+					function (c) {
+						return A2(
+							$elm$html$Html$span,
+							_List_Nil,
+							_List_fromArray(
+								[
+									$elm$html$Html$text(c)
+								]));
+					},
+					s.D))
+			]));
+};
+var $author$project$Sponsors$Planned = 1;
+var $author$project$Sponsors$sponsors = _List_fromArray(
+	[
+		{
+		D: _List_fromArray(
+			['server/src/zoowork.ts', 'ZOOWORK_API_KEY', 'ZOOWORK_AGENTS']),
+		bE: 'ZooWork',
+		y: 'Agent runtime',
+		Z: 'Agents & integrations → Ads gallery; the ZooWork badge on messages in Mission control.',
+		bg: 0,
+		_: 'Runs the merchant\'s agents as ZooWork managed agents on Claude Opus 5.5: one agent per store and role, created on first use with its role written into the agent\'s persona.',
+		ab: _List_fromArray(
+			['The promo engine and the concierge run on ZooWork by default; set ZOOWORK_AGENTS to move more roles over. Roles not on ZooWork fall back to built-in rules, and every message records which one answered (zoowork or sim).', 'Promo agent: picks the product, discount and ad copy. The store\'s rules still set price, margin, and when the owner has to approve.', 'The same promo agent paints a 2400×840 billboard with ZooWork\'s designer skill; the owner chooses whether the shop\'s board shows it.', 'Importer agent: turns scraped storefront text into a new shop.'])
+	},
+		{
+		D: _List_fromArray(
+			['server/src/band.ts', 'api.band.ai /api/v1/agent/chats']),
+		bE: 'Band',
+		y: 'Agent-to-agent rooms',
+		Z: 'Agents & integrations → Band status and agent rooms; Mission control shows every Band conversation across stores.',
+		bg: 0,
+		_: 'Every Tabard room is a real Band chat room. Seven Band agents take part: concierge, stylist, promo, service, returns, gatekeeper, and a shopper agent that speaks for Muse and Dots buyers.',
+		ab: _List_fromArray(
+			['Each message is posted to Band as the agent who said it, with @mentions for whoever should act.', 'Handoffs run through Band: when the concierge @mentions the stylist or promo agent, that agent pulls the request from its own Band inbox (GET /messages/next), answers in the room, and marks it processed.', 'Agents\' reasoning is posted as thought events beside the messages.', 'The owner can open a team room and @mention agents to discuss a plan.'])
+	},
+		{
+		D: _List_fromArray(
+			['server/src/importer.ts', 'TAVILY_API_KEY']),
+		bE: 'Tavily',
+		y: 'Web research',
+		Z: 'Mission control and the merchant list (imported shops); promo offers cite \"tavily · N prices\".',
+		bg: 0,
+		_: 'Brings the outside web into the store when the answer isn\'t in the merchant\'s own data.',
+		ab: _List_fromArray(
+			['Import a shop from a link (TikTok Shop, Amazon, Shopify or any site): Tavily Extract reads the storefront page, and Tavily Search fills in what the page hides or blocks.', 'Competitor pricing: every promo offer is checked against the web. The competitor price is the median of the prices Tavily Search finds for that product.'])
+	},
+		{
+		D: _List_Nil,
+		bE: 'Moss',
+		y: 'Fast retrieval',
+		Z: 'System design → Phone calls and Getting real data.',
+		bg: 1,
+		_: 'Planned as the sub-10 ms lookup layer over the catalog, policies and customer history, fast enough for live phone calls.',
+		ab: _List_fromArray(
+			['Today the agents\' \"moss · …\" citations are simulated labels showing where Moss lookups would go.', 'Next: index catalog, policies and customer/{id}, and run a lookup on every chat and call turn.'])
+	},
+		{
+		D: _List_Nil,
+		bE: 'Entire',
+		y: 'Agent provenance',
+		Z: 'Merchant console → Decision log.',
+		bg: 1,
+		_: 'Planned for the development side: git checkpoints of the agent sessions behind each change to agent prompts, policies and code.',
+		ab: _List_fromArray(
+			['Today the decision log records an agent version on every decision (for example promo@a41c9e).', 'Next: link those versions to Entire checkpoints, so \"why did the screener start refusing this?\" has an answer.'])
+	}
+	]);
+var $author$project$Sponsors$view = function () {
+	var live = $elm$core$List$length(
+		A2(
+			$elm$core$List$filter,
+			function (s) {
+				return !s.bg;
+			},
+			$author$project$Sponsors$sponsors));
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				$elm$html$Html$Attributes$class('sponsor-page')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('sponsor-intro')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$span,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('eyebrow')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Sponsors')
+							])),
+						A2(
+						$elm$html$Html$h2,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Who powers Tabard, and how')
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('lede')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								$elm$core$String$fromInt(live) + (' sponsors are wired into the running app; ' + ($elm$core$String$fromInt(
+									$elm$core$List$length($author$project$Sponsors$sponsors) - live) + ' are planned. Live connection status is on the Agents & integrations tab.')))
+							]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('sponsor-grid')
+					]),
+				A2($elm$core$List$map, $author$project$Sponsors$card, $author$project$Sponsors$sponsors)),
+				A2(
+				$elm$html$Html$p,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('note sponsor-foot')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Also built with: Claude (Anthropic API) to structure imported shops, Elm, React, Node.js, Express and SQLite. Buyer agents (Muse, Dots) are simulated.')
+					]))
+			]));
+}();
 var $author$project$Main$DecisionLog = 3;
 var $author$project$Main$Refunds = 1;
 var $author$project$Main$Security = 2;
@@ -14198,7 +14466,7 @@ var $author$project$Main$TakeOver = {$: 9};
 var $elm$html$Html$br = _VirtualDom_node('br');
 var $author$project$Data$Purchase = F5(
 	function (order, item, date, amount, outcome) {
-		return {b6: amount, cg: date, cn: item, bD: order, cu: outcome};
+		return {ca: amount, ck: date, cr: item, bH: order, cy: outcome};
 	});
 var $elm$core$Dict$fromList = function (assocs) {
 	return A3(
@@ -14218,70 +14486,70 @@ var $author$project$Data$customers = $elm$core$Dict$fromList(
 			_Utils_Tuple2(
 			'c1',
 			{
-				aR: _List_fromArray(
+				aV: _List_fromArray(
 					[
 						A5($author$project$Data$Purchase, 'LO-54410', 'Merino crewneck, oat', 'Aug 30, 2026', 128, 'Kept'),
 						A5($author$project$Data$Purchase, 'LO-52018', 'Linen wide-leg trouser', 'Jun 12, 2026', 146, 'Kept'),
 						A5($author$project$Data$Purchase, 'LO-49903', 'Leather loafer 38', 'Mar 3, 2026', 210, 'Exchanged size'),
 						A5($author$project$Data$Purchase, 'LO-47220', 'Cashmere scarf', 'Dec 9, 2025', 95, 'Kept')
 					]),
-				aS: 1840,
-				bA: 'Priya Raman',
-				aU: 11,
-				aV: '+1 (718) 555-0142',
-				aW: _List_fromArray(
-					['Natural fibres', 'Earth tones', 'Ships to Brooklyn']),
-				aX: 9,
-				ai: 12,
-				aZ: 'Customer since Mar 2023',
+				aW: 1840,
+				bE: 'Priya Raman',
+				aY: 11,
+				aZ: '+1 (718) 555-0142',
 				a_: _List_fromArray(
+					['Natural fibres', 'Earth tones', 'Ships to Brooklyn']),
+				a$: 9,
+				am: 12,
+				a1: 'Customer since Mar 2023',
+				a2: _List_fromArray(
 					['Tops M', 'Coats M', 'Shoes 38']),
-				a$: 'Gold'
+				a3: 'Gold'
 			}),
 			_Utils_Tuple2(
 			'c2',
 			{
-				aR: _List_fromArray(
+				aV: _List_fromArray(
 					[
 						A5($author$project$Data$Purchase, 'LO-55790', 'Chelsea boot, black 44', 'Sep 21, 2026', 214, 'Refund requested'),
 						A5($author$project$Data$Purchase, 'LO-54102', 'Waxed jacket L', 'Aug 14, 2026', 265, 'Refunded'),
 						A5($author$project$Data$Purchase, 'LO-53011', 'Chelsea boot, brown 44', 'Jul 2, 2026', 214, 'Refunded'),
 						A5($author$project$Data$Purchase, 'LO-51870', 'Wool beanie', 'May 20, 2026', 38, 'Kept')
 					]),
-				aS: 612,
-				bA: 'Marcus Hale',
-				aU: 5,
-				aV: '+1 (312) 555-0187',
-				aW: _List_fromArray(
-					['Limited drops', 'Ships to a freight forwarder']),
-				aX: 58,
-				ai: 72,
-				aZ: 'Customer since Jan 2026',
+				aW: 612,
+				bE: 'Marcus Hale',
+				aY: 5,
+				aZ: '+1 (312) 555-0187',
 				a_: _List_fromArray(
+					['Limited drops', 'Ships to a freight forwarder']),
+				a$: 58,
+				am: 72,
+				a1: 'Customer since Jan 2026',
+				a2: _List_fromArray(
 					['Boots 44', 'Jackets L']),
-				a$: 'Standard'
+				a3: 'Standard'
 			}),
 			_Utils_Tuple2(
 			'c3',
 			{
-				aR: _List_fromArray(
+				aV: _List_fromArray(
 					[
 						A5($author$project$Data$Purchase, 'LO-55812', 'Quilted vest, olive S', 'Sep 28, 2026', 158, 'In transit, 2 days late'),
 						A5($author$project$Data$Purchase, 'LO-53390', 'Poplin shirt, white S', 'Jul 19, 2026', 98, 'Kept'),
 						A5($author$project$Data$Purchase, 'LO-50021', 'Cord trouser 27', 'Apr 2, 2026', 132, 'Kept')
 					]),
-				aS: 930,
-				bA: 'Dana Kim',
-				aU: 7,
-				aV: '+1 (512) 555-0119',
-				aW: _List_fromArray(
-					['Gift wrapping', 'Ships to Austin']),
-				aX: 14,
-				ai: 8,
-				aZ: 'Customer since Nov 2024',
+				aW: 930,
+				bE: 'Dana Kim',
+				aY: 7,
+				aZ: '+1 (512) 555-0119',
 				a_: _List_fromArray(
+					['Gift wrapping', 'Ships to Austin']),
+				a$: 14,
+				am: 8,
+				a1: 'Customer since Nov 2024',
+				a2: _List_fromArray(
 					['Tops S', 'Trousers 27']),
-				a$: 'Silver'
+				a3: 'Silver'
 			})
 		]));
 var $author$project$Data$customer = function (id) {
@@ -14512,7 +14780,7 @@ var $author$project$Main$viewCall = F2(
 									_List_Nil,
 									_List_fromArray(
 										[
-											$elm$html$Html$text('On call · ' + c.aV)
+											$elm$html$Html$text('On call · ' + c.aZ)
 										])),
 									A2(
 									$elm$html$Html$span,
@@ -14549,16 +14817,16 @@ var $author$project$Main$viewCall = F2(
 												_List_Nil,
 												_List_fromArray(
 													[
-														$elm$html$Html$text(l.cI + ':')
+														$elm$html$Html$text(l.cM + ':')
 													])),
 											A2(
 												$elm$core$List$cons,
-												$elm$html$Html$text(l.al),
+												$elm$html$Html$text(l.aq),
 												$author$project$Main$cites(
 													A2(
 														$elm$core$Maybe$withDefault,
 														_List_Nil,
-														A2($elm$core$Maybe$map, $elm$core$List$singleton, l.cd))))));
+														A2($elm$core$Maybe$map, $elm$core$List$singleton, l.ch))))));
 								},
 								A2(
 									$elm$core$List$take,
@@ -14606,7 +14874,7 @@ var $author$project$Main$viewDesk = function (model) {
 		return _List_Nil;
 	} else {
 		var r = _v0.a;
-		var _v1 = A2($elm$core$Maybe$andThen, $author$project$Data$customer, r.ap);
+		var _v1 = A2($elm$core$Maybe$andThen, $author$project$Data$customer, r.au);
 		if (_v1.$ === 1) {
 			return _List_fromArray(
 				[
@@ -14646,8 +14914,8 @@ var $author$project$Main$viewDesk = function (model) {
 		} else {
 			var c = _v1.a;
 			var risk = $author$project$Main$toneVar(
-				$author$project$Main$riskTone(c.ai));
-			var returnColor = (c.aX > 40) ? 'var(--bad)' : 'var(--forest)';
+				$author$project$Main$riskTone(c.am));
+			var returnColor = (c.a$ > 40) ? 'var(--bad)' : 'var(--forest)';
 			return _List_fromArray(
 				[
 					A2(
@@ -14669,7 +14937,7 @@ var $author$project$Main$viewDesk = function (model) {
 									$elm$html$Html$text('Customer desk')
 								])),
 							$author$project$Main$pill(
-							_Utils_Tuple2(c.a$, 4))
+							_Utils_Tuple2(c.a3, 4))
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -14684,7 +14952,7 @@ var $author$project$Main$viewDesk = function (model) {
 							_List_Nil,
 							_List_fromArray(
 								[
-									$elm$html$Html$text(c.bA)
+									$elm$html$Html$text(c.bE)
 								])),
 							A2(
 							$elm$html$Html$span,
@@ -14694,7 +14962,7 @@ var $author$project$Main$viewDesk = function (model) {
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(c.aZ + (' · represented by ' + r.v))
+									$elm$html$Html$text(c.a1 + (' · represented by ' + r.v))
 								]))
 						])),
 					A2(
@@ -14709,32 +14977,32 @@ var $author$project$Main$viewDesk = function (model) {
 							A4(
 							$author$project$Main$fact,
 							'Lifetime value',
-							$author$project$Main$money(c.aS),
+							$author$project$Main$money(c.aW),
 							_List_Nil,
 							$elm$core$Maybe$Nothing),
 							A4(
 							$author$project$Main$fact,
 							'Orders',
-							$elm$core$String$fromInt(c.aU),
+							$elm$core$String$fromInt(c.aY),
 							_List_Nil,
 							$elm$core$Maybe$Nothing),
 							A4(
 							$author$project$Main$fact,
 							'Return rate',
-							$elm$core$String$fromInt(c.aX) + '%',
+							$elm$core$String$fromInt(c.a$) + '%',
 							_List_Nil,
 							$elm$core$Maybe$Just(
-								_Utils_Tuple2(c.aX, returnColor))),
+								_Utils_Tuple2(c.a$, returnColor))),
 							A4(
 							$author$project$Main$fact,
 							'Risk score',
-							$elm$core$String$fromInt(c.ai) + ' / 100',
+							$elm$core$String$fromInt(c.am) + ' / 100',
 							_List_fromArray(
 								[
 									A2($elm$html$Html$Attributes$style, 'color', risk)
 								]),
 							$elm$core$Maybe$Just(
-								_Utils_Tuple2(c.ai, risk)))
+								_Utils_Tuple2(c.am, risk)))
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -14756,7 +15024,7 @@ var $author$project$Main$viewDesk = function (model) {
 										$elm$html$Html$text(s)
 									]));
 						},
-						_Utils_ap(c.a_, c.aW))),
+						_Utils_ap(c.a2, c.a_))),
 					A2(
 					$elm$html$Html$div,
 					_List_fromArray(
@@ -14827,7 +15095,7 @@ var $author$project$Main$viewDesk = function (model) {
 										_List_Nil,
 										_List_fromArray(
 											[
-												$elm$html$Html$text(h.cn)
+												$elm$html$Html$text(h.cr)
 											])),
 										A2(
 										$elm$html$Html$span,
@@ -14838,7 +15106,7 @@ var $author$project$Main$viewDesk = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												$author$project$Main$money(h.b6))
+												$author$project$Main$money(h.ca))
 											])),
 										A2(
 										$elm$html$Html$span,
@@ -14848,7 +15116,7 @@ var $author$project$Main$viewDesk = function (model) {
 											]),
 										_List_fromArray(
 											[
-												$elm$html$Html$text(h.bD + (' · ' + h.cg))
+												$elm$html$Html$text(h.bH + (' · ' + h.ck))
 											])),
 										A2(
 										$elm$html$Html$span,
@@ -14858,11 +15126,11 @@ var $author$project$Main$viewDesk = function (model) {
 											]),
 										_List_fromArray(
 											[
-												$elm$html$Html$text(h.cu)
+												$elm$html$Html$text(h.cy)
 											]))
 									]));
 						},
-						c.aR))
+						c.aV))
 				]);
 		}
 	}
@@ -14877,9 +15145,9 @@ var $author$project$Main$customerName = function (r) {
 		A2(
 			$elm$core$Maybe$map,
 			function ($) {
-				return $.bA;
+				return $.bE;
 			},
-			A2($elm$core$Maybe$andThen, $author$project$Data$customer, r.ap)));
+			A2($elm$core$Maybe$andThen, $author$project$Data$customer, r.au)));
 };
 var $author$project$Main$viewRoomRow = F2(
 	function (current, r) {
@@ -14922,7 +15190,7 @@ var $author$project$Main$viewRoomRow = F2(
 											$elm$html$Html$text(
 											$author$project$Main$customerName(r))
 										])),
-									$author$project$Main$pill(r.aH)
+									$author$project$Main$pill(r.aL)
 								])),
 							A2(
 							$elm$html$Html$span,
@@ -14932,7 +15200,7 @@ var $author$project$Main$viewRoomRow = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(r.as)
+									$elm$html$Html$text(r.ax)
 								])),
 							A2(
 							$elm$html$Html$span,
@@ -14942,14 +15210,14 @@ var $author$project$Main$viewRoomRow = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(r.v + (' · ' + (r.a8 + (' · ' + r.aB))))
+									$elm$html$Html$text(r.v + (' · ' + (r.bc + (' · ' + r.aG))))
 								]))
 						]))
 				]));
 	});
 var $author$project$Data$AgentSeen = F5(
 	function (handle, claims, checks, risk, result) {
-		return {cc: checks, ce: claims, v: handle, cx: result, ai: risk};
+		return {cg: checks, ci: claims, v: handle, cB: result, am: risk};
 	});
 var $author$project$Data$agentsSeen = _List_fromArray(
 	[
@@ -15016,7 +15284,7 @@ var $author$project$Main$reasons = function (items) {
 };
 var $author$project$Data$Signal = F4(
 	function (time, text, by, severity) {
-		return {ca: by, cA: severity, al: text, bY: time};
+		return {ce: by, cE: severity, aq: text, b0: time};
 	});
 var $author$project$Data$signals = _List_fromArray(
 	[
@@ -15113,7 +15381,7 @@ var $author$project$Main$viewPost = F2(
 			}
 		}();
 		var approval = function () {
-			if (!m.a1) {
+			if (!m.a5) {
 				return _List_Nil;
 			} else {
 				if (decision.$ === 1) {
@@ -15220,7 +15488,7 @@ var $author$project$Main$viewPost = F2(
 						]),
 					_List_fromArray(
 						[
-							$elm$html$Html$text(m.br)
+							$elm$html$Html$text(m.bv)
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -15239,14 +15507,14 @@ var $author$project$Main$viewPost = F2(
 									]),
 								_List_fromArray(
 									[
-										$elm$html$Html$text(m.al)
+										$elm$html$Html$text(m.aq)
 									]))
 							]),
 						_Utils_ap(
-							$author$project$Main$cites(m.M),
+							$author$project$Main$cites(m.N),
 							_Utils_ap(
 								function () {
-									var _v0 = m.a7;
+									var _v0 = m.bb;
 									if (!_v0.$) {
 										var p = _v0.a;
 										return _List_fromArray(
@@ -15287,7 +15555,7 @@ var $author$project$Main$viewConversation = function (model) {
 		var decision = A2(
 			$elm$core$Maybe$andThen,
 			function ($) {
-				return $.bm;
+				return $.bq;
 			},
 			$elm$core$List$head(
 				A2(
@@ -15295,7 +15563,7 @@ var $author$project$Main$viewConversation = function (model) {
 					function (f) {
 						return f.b === 'RF-2207';
 					},
-					model.V)));
+					model.X)));
 		return A2(
 			$elm$html$Html$div,
 			_List_Nil,
@@ -15346,7 +15614,7 @@ var $author$project$Main$viewConversation = function (model) {
 												},
 												r.v)))
 										])),
-									$elm$html$Html$text(' · via ' + (r.a8 + (' · ' + r.au)))
+									$elm$html$Html$text(' · via ' + (r.bc + (' · ' + r.az)))
 								]))
 						])),
 					A2(
@@ -15376,7 +15644,7 @@ var $author$project$Main$viewConversation = function (model) {
 										$elm$html$Html$text(m)
 									]));
 						},
-						r.ax)),
+						r.aC)),
 					A2(
 					$elm$html$Html$div,
 					_List_fromArray(
@@ -15388,7 +15656,7 @@ var $author$project$Main$viewConversation = function (model) {
 					A2(
 						$elm$core$List$map,
 						$author$project$Main$viewPost(decision),
-						r.aC)),
+						r.aH)),
 					A2(
 					$elm$html$Html$form,
 					_List_fromArray(
@@ -15426,7 +15694,7 @@ var $author$project$Main$viewConversation = function (model) {
 };
 var $author$project$Main$viewRefundRow = function (f) {
 	var primaryAct = function () {
-		var _v1 = f.cv;
+		var _v1 = f.cz;
 		switch (_v1) {
 			case 'Approve':
 				return 'Refunded';
@@ -15437,7 +15705,7 @@ var $author$project$Main$viewRefundRow = function (f) {
 		}
 	}();
 	var action = function () {
-		var _v0 = f.bm;
+		var _v0 = f.bq;
 		if (_v0.$ === 1) {
 			return A2(
 				$elm$html$Html$div,
@@ -15457,7 +15725,7 @@ var $author$project$Main$viewRefundRow = function (f) {
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text(f.cv)
+								$elm$html$Html$text(f.cz)
 							])),
 						A2(
 						$elm$html$Html$button,
@@ -15520,7 +15788,7 @@ var $author$project$Main$viewRefundRow = function (f) {
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text(f.bD)
+								$elm$html$Html$text(f.bH)
 							]))
 					])),
 				A2(
@@ -15528,7 +15796,7 @@ var $author$project$Main$viewRefundRow = function (f) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text(f.cf)
+						$elm$html$Html$text(f.cj)
 					])),
 				A2(
 				$elm$html$Html$td,
@@ -15539,7 +15807,7 @@ var $author$project$Main$viewRefundRow = function (f) {
 				_List_fromArray(
 					[
 						$elm$html$Html$text(
-						$author$project$Main$money(f.b7))
+						$author$project$Main$money(f.cb))
 					])),
 				A2(
 				$elm$html$Html$td,
@@ -15548,8 +15816,8 @@ var $author$project$Main$viewRefundRow = function (f) {
 					[
 						$author$project$Main$pill(
 						_Utils_Tuple2(
-							'Risk ' + $elm$core$String$fromInt(f.ai),
-							$author$project$Main$riskTone(f.ai))),
+							'Risk ' + $elm$core$String$fromInt(f.am),
+							$author$project$Main$riskTone(f.am))),
 						A2(
 						$elm$html$Html$span,
 						_List_fromArray(
@@ -15558,7 +15826,7 @@ var $author$project$Main$viewRefundRow = function (f) {
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text(f.cv)
+								$elm$html$Html$text(f.cz)
 							]))
 					])),
 				A2(
@@ -15566,7 +15834,7 @@ var $author$project$Main$viewRefundRow = function (f) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						$author$project$Main$reasons(f.cJ)
+						$author$project$Main$reasons(f.cN)
 					])),
 				A2(
 				$elm$html$Html$td,
@@ -15600,7 +15868,7 @@ var $author$project$Main$viewTab = function (model) {
 						$author$project$Main$table_,
 						_List_fromArray(
 							['Case', 'Customer', 'Amount', 'Screener', 'Why', 'Action']),
-						A2($elm$core$List$map, $author$project$Main$viewRefundRow, model.V))
+						A2($elm$core$List$map, $author$project$Main$viewRefundRow, model.X))
 					]));
 		case 2:
 			return A2(
@@ -15645,14 +15913,14 @@ var $author$project$Main$viewTab = function (model) {
 											_List_Nil,
 											_List_fromArray(
 												[
-													$elm$html$Html$text(a.ce)
+													$elm$html$Html$text(a.ci)
 												])),
 											A2(
 											$elm$html$Html$td,
 											_List_Nil,
 											_List_fromArray(
 												[
-													$author$project$Main$reasons(a.cc)
+													$author$project$Main$reasons(a.cg)
 												])),
 											A2(
 											$elm$html$Html$td,
@@ -15663,14 +15931,14 @@ var $author$project$Main$viewTab = function (model) {
 											_List_fromArray(
 												[
 													$elm$html$Html$text(
-													$elm$core$String$fromInt(a.ai))
+													$elm$core$String$fromInt(a.am))
 												])),
 											A2(
 											$elm$html$Html$td,
 											_List_Nil,
 											_List_fromArray(
 												[
-													$author$project$Main$pill(a.cx)
+													$author$project$Main$pill(a.cB)
 												]))
 										]));
 							},
@@ -15714,14 +15982,14 @@ var $author$project$Main$viewTab = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(s.bY)
+													$elm$html$Html$text(s.b0)
 												])),
 											A2(
 											$elm$html$Html$td,
 											_List_Nil,
 											_List_fromArray(
 												[
-													$elm$html$Html$text(s.al)
+													$elm$html$Html$text(s.aq)
 												])),
 											A2(
 											$elm$html$Html$td,
@@ -15731,14 +15999,14 @@ var $author$project$Main$viewTab = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(s.ca)
+													$elm$html$Html$text(s.ce)
 												])),
 											A2(
 											$elm$html$Html$td,
 											_List_Nil,
 											_List_fromArray(
 												[
-													$author$project$Main$pill(s.cA)
+													$author$project$Main$pill(s.cE)
 												]))
 										]));
 							},
@@ -15780,7 +16048,7 @@ var $author$project$Main$viewTab = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(l.bY)
+													$elm$html$Html$text(l.b0)
 												])),
 											A2(
 											$elm$html$Html$td,
@@ -15790,14 +16058,14 @@ var $author$project$Main$viewTab = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(l.b4)
+													$elm$html$Html$text(l.b8)
 												])),
 											A2(
 											$elm$html$Html$td,
 											_List_Nil,
 											_List_fromArray(
 												[
-													$elm$html$Html$text(l.bm)
+													$elm$html$Html$text(l.bq)
 												])),
 											A2(
 											$elm$html$Html$td,
@@ -15807,7 +16075,7 @@ var $author$project$Main$viewTab = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(l.b9)
+													$elm$html$Html$text(l.cd)
 												])),
 											A2(
 											$elm$html$Html$td,
@@ -15817,11 +16085,11 @@ var $author$project$Main$viewTab = function (model) {
 												]),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(l.cH)
+													$elm$html$Html$text(l.cL)
 												]))
 										]));
 							},
-							model.aw))
+							model.aB))
 					]));
 	}
 };
@@ -15830,15 +16098,15 @@ var $author$project$Main$viewConsole = function (model) {
 		A2(
 			$elm$core$List$filter,
 			function (f) {
-				return _Utils_eq(f.bm, $elm$core$Maybe$Nothing);
+				return _Utils_eq(f.bq, $elm$core$Maybe$Nothing);
 			},
-			model.V));
+			model.X));
 	return A2(
 		$elm$html$Html$main_,
 		_List_fromArray(
 			[
 				$elm$html$Html$Attributes$id('view-console'),
-				$elm$html$Html$Attributes$hidden(!(!model.j))
+				$elm$html$Html$Attributes$hidden(!(!model.h))
 			]),
 		_List_fromArray(
 			[
@@ -15903,7 +16171,7 @@ var $author$project$Main$viewConsole = function (model) {
 											[
 												$elm$html$Html$text(
 												$elm$core$String$fromInt(
-													$elm$core$List$length(model.W)))
+													$elm$core$List$length(model.Y)))
 											]))
 									])),
 								A2(
@@ -15914,8 +16182,8 @@ var $author$project$Main$viewConsole = function (model) {
 									]),
 								A2(
 									$elm$core$List$map,
-									$author$project$Main$viewRoomRow(model.D),
-									model.W))
+									$author$project$Main$viewRoomRow(model.E),
+									model.Y))
 							])),
 						A2(
 						$elm$html$Html$section,
@@ -16058,23 +16326,28 @@ var $author$project$Main$view = function (model) {
 						A3(
 						$author$project$Main$tabButton,
 						'Merchant console',
-						!model.j,
+						!model.h,
 						$author$project$Main$SelectView(0)),
 						A3(
 						$author$project$Main$tabButton,
 						'Mission control',
-						model.j === 1,
+						model.h === 1,
 						$author$project$Main$SelectView(1)),
 						A3(
 						$author$project$Main$tabButton,
 						'Agents & integrations',
-						model.j === 2,
+						model.h === 2,
 						$author$project$Main$SelectView(2)),
 						A3(
 						$author$project$Main$tabButton,
-						'System design',
-						model.j === 3,
+						'Sponsors',
+						model.h === 3,
 						$author$project$Main$SelectView(3)),
+						A3(
+						$author$project$Main$tabButton,
+						'System design',
+						model.h === 4,
+						$author$project$Main$SelectView(4)),
 						A2(
 						$elm$html$Html$span,
 						_List_fromArray(
@@ -16092,29 +16365,38 @@ var $author$project$Main$view = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$id('view-mission'),
-						$elm$html$Html$Attributes$hidden(model.j !== 1)
+						$elm$html$Html$Attributes$hidden(model.h !== 1)
 					]),
 				_List_fromArray(
 					[
 						A2(
 						$elm$html$Html$map,
 						$author$project$Main$MissionMsg,
-						$author$project$Mission$view(model.ah))
+						$author$project$Mission$view(model.al))
 					])),
 				A2(
 				$elm$html$Html$main_,
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$id('view-agents'),
-						$elm$html$Html$Attributes$hidden(model.j !== 2)
+						$elm$html$Html$Attributes$hidden(model.h !== 2)
 					]),
 				_List_fromArray(
 					[
 						A2(
 						$elm$html$Html$map,
 						$author$project$Main$AgentsMsg,
-						$author$project$Agents$view(model.Z))
+						$author$project$Agents$view(model.ad))
 					])),
+				A2(
+				$elm$html$Html$main_,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$id('view-sponsors'),
+						$elm$html$Html$Attributes$hidden(model.h !== 3)
+					]),
+				_List_fromArray(
+					[$author$project$Sponsors$view])),
 				A2(
 				$elm$html$Html$main_,
 				_List_fromArray(
@@ -16123,7 +16405,7 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$Attributes$classList(
 						_List_fromArray(
 							[
-								_Utils_Tuple2('offstage', model.j !== 3)
+								_Utils_Tuple2('offstage', model.h !== 4)
 							]))
 					]),
 				_List_fromArray(
@@ -16131,7 +16413,7 @@ var $author$project$Main$view = function (model) {
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
-	{cm: $author$project$Main$init, cD: $author$project$Main$subscriptions, cG: $author$project$Main$update, j: $author$project$Main$view});
+	{cq: $author$project$Main$init, cH: $author$project$Main$subscriptions, cK: $author$project$Main$update, h: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	A2(
 		$elm$json$Json$Decode$andThen,
@@ -16143,7 +16425,7 @@ _Platform_export({'Main':{'init':$author$project$Main$main(
 						$elm$json$Json$Decode$andThen,
 						function (api) {
 							return $elm$json$Json$Decode$succeed(
-								{u: api, af: hash, aF: saved});
+								{u: api, R: hash, an: saved});
 						},
 						A2($elm$json$Json$Decode$field, 'api', $elm$json$Json$Decode$string));
 				},

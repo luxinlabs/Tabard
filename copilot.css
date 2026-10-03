@@ -180,6 +180,17 @@ pre.code{background:var(--surface);border:1px solid var(--line);border-radius:10
 mermaid-diagram{display:block;margin-block:4px}
 mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
 mermaid-diagram pre{margin:0;font-family:var(--mono);font-size:12px;white-space:pre;color:var(--muted)}
+/* sponsors page */
+.sponsor-page{display:flex;flex-direction:column;gap:18px;padding-block:12px 8px}
+.sponsor-intro{display:flex;flex-direction:column;gap:8px}
+.sponsor-intro h2{font-family:var(--display);font-size:30px;color:var(--forest)}
+.sponsor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start}
+.sponsor-card{gap:8px;padding:16px 18px}
+.sponsor-card h3{font-size:24px}
+.sponsor-card ul{display:flex;flex-direction:column;gap:4px}
+.sponsor-card .label{margin-top:6px}
+.sponsor-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sponsor-foot{max-width:80ch}
 svg .label{font-size:inherit;letter-spacing:normal;text-transform:none;color:inherit;font-weight:inherit}
 
 /* mission control */

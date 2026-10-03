@@ -12,6 +12,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Agents
 import Mission
+import Sponsors
 import Task
 import Time
 
@@ -37,6 +38,7 @@ type View
     = Console
     | MissionControl
     | AgentsView
+    | SponsorsView
     | DesignDoc
 
 
@@ -87,6 +89,9 @@ init flags =
 
             else if flags.hash == "#agents" || flags.saved == "agents" then
                 AgentsView
+
+            else if flags.hash == "#sponsors" || flags.saved == "sponsors" then
+                SponsorsView
 
             else
                 Console
@@ -343,6 +348,9 @@ viewKey v =
         AgentsView ->
             "agents"
 
+        SponsorsView ->
+            "sponsors"
+
         DesignDoc ->
             "design"
 
@@ -384,12 +392,14 @@ view model =
             [ tabButton "Merchant console" (model.view == Console) (SelectView Console)
             , tabButton "Mission control" (model.view == MissionControl) (SelectView MissionControl)
             , tabButton "Agents & integrations" (model.view == AgentsView) (SelectView AgentsView)
+            , tabButton "Sponsors" (model.view == SponsorsView) (SelectView SponsorsView)
             , tabButton "System design" (model.view == DesignDoc) (SelectView DesignDoc)
             , span [ class "sample" ] [ text "Prototype · all store and customer data is sample data" ]
             ]
         , viewConsole model
         , main_ [ id "view-mission", hidden (model.view /= MissionControl) ] [ Html.map MissionMsg (Mission.view model.mission) ]
         , main_ [ id "view-agents", hidden (model.view /= AgentsView) ] [ Html.map AgentsMsg (Agents.view model.agents) ]
+        , main_ [ id "view-sponsors", hidden (model.view /= SponsorsView) ] [ Sponsors.view ]
 
         -- The design doc stays laid out when off screen so its diagrams size correctly.
         , main_ [ id "view-design", classList [ ( "offstage", model.view /= DesignDoc ) ] ] [ Design.view ]
